@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../lib/store';
 import { db } from '../../lib/db';
 import type { Transaction } from '../../types';
-import { formatCurrency, formatDate } from '../../lib/utils';
-import { BarChart3, PieChart, TrendingUp, Users, FileText, Calendar } from 'lucide-react';
+import { formatCurrency } from '../../lib/utils';
+import { BarChart3, PieChart, TrendingUp, Users, FileText } from 'lucide-react';
 import { clsx } from 'clsx';
 
 type ReportType = 'cash-flow' | 'category' | 'trends' | 'party' | 'custom';
@@ -146,9 +146,9 @@ function CashFlowReport({ transactions, currency }: { transactions: Transaction[
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard label="Total Income" value={stats.income} currency={currency} color="text-green-600" bg="bg-green-50" />
-                <StatCard label="Total Expense" value={stats.expense} currency={currency} color="text-red-600" bg="bg-red-50" />
-                <StatCard label="Net Cash Flow" value={net} currency={currency} color={net >= 0 ? "text-blue-600" : "text-red-600"} bg={net >= 0 ? "bg-blue-50" : "bg-red-50"} />
+                <StatCard label="Total Income" value={stats.income} currency={currency} color="text-green-600" />
+                <StatCard label="Total Expense" value={stats.expense} currency={currency} color="text-red-600" />
+                <StatCard label="Net Cash Flow" value={net} currency={currency} color={net >= 0 ? "text-blue-600" : "text-red-600"} />
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -360,7 +360,7 @@ function CustomReport({ transactions, currency, groupBy, setGroupBy, fields }: {
     );
 }
 
-function StatCard({ label, value, currency, color, bg }: { label: string, value: number, currency: string, color: string, bg: string }) {
+function StatCard({ label, value, currency, color }: { label: string, value: number, currency: string, color: string }) {
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>

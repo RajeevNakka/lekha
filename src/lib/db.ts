@@ -139,9 +139,6 @@ export const db = {
     async deleteBook(id: string) {
         const db = await initDB();
 
-        // Get all transactions for this book to delete them
-        const transactions = await db.getAllFromIndex('transactions', 'by-book', id);
-
         const tx = db.transaction(['books', 'transactions', 'audit_logs'], 'readwrite');
 
         // Delete the book

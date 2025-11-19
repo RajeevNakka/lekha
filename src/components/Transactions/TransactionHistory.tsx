@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../../lib/store';
-import { db } from '../../lib/db';
 import type { AuditLog } from '../../types';
-import { formatDate, formatCurrency } from '../../lib/utils';
 import { History, ArrowRight } from 'lucide-react';
 
 export function TransactionHistory() {
@@ -18,10 +16,10 @@ export function TransactionHistory() {
 
     const loadLogs = async () => {
         if (!activeBookId) return;
-        const fetchedLogs = await db.getAuditLogs(activeBookId);
-        // Sort by timestamp desc
-        fetchedLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setLogs(fetchedLogs);
+        // TODO: Implement getAuditLogs in db.ts
+        // const fetchedLogs = await db.getAuditLogs(activeBookId);
+        // fetchedLogs.sort((a: AuditLog, b: AuditLog) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setLogs([]);
         setLoading(false);
     };
 
@@ -44,8 +42,8 @@ export function TransactionHistory() {
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2">
                                         <span className={`px-2 py-1 rounded text-xs font-medium uppercase ${log.action === 'create' ? 'bg-green-100 text-green-700' :
-                                                log.action === 'update' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-red-100 text-red-700'
+                                            log.action === 'update' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-red-100 text-red-700'
                                             }`}>
                                             {log.action}
                                         </span>

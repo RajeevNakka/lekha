@@ -1,4 +1,4 @@
-import { X, Edit2, Calendar, Tag, CreditCard, FileText, DollarSign } from 'lucide-react';
+import { X, Edit2, Calendar, Tag, FileText, DollarSign } from 'lucide-react';
 import type { Transaction, Book } from '../../types';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { Link } from 'react-router-dom';
