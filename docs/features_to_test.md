@@ -37,3 +37,27 @@
 ## 4. Audit Logs
 - [ ] **View History**: Verify "Audit Log" page displays all actions (Create, Update, Delete).
 - [ ] **Verify Details**: Check that changes (old value vs new value) are recorded correctly.
+
+## 5. Dashboard
+- [ ] **Quick Stats**: Verify total income, expenses, and balance are correct.
+- [ ] **Recent Activity**: Verify list of recent transactions.
+- [ ] **Quick Actions**: Verify buttons to add transactions and create books.
+
+## 6. Reports Module
+- [ ] **Cash Flow**: Verify Income vs Expense summary and chart.
+- [ ] **Category Breakdown**: Verify expense distribution by category.
+- [ ] **Monthly Trends**: Verify Income and Expense trends over time.
+- [ ] **Party Ledger**: Verify total paid/received per party.
+- [ ] **Custom Reports**: Verify grouping transactions by custom fields.
+- [ ] **Filtering**: Verify global date range filter (This Month, Last Month, This Year, All Time).
+
+## 7. Smart CSV Import
+- [ ] **Import Modal**: Verify file upload handling.
+- [ ] **CSV Parsing**: Verify handling of quoted fields and newlines.
+- [ ] **Column Mapping**: Verify auto-guessing and manual mapping.
+- [ ] **Batch Processing**: Verify transactions are imported correctly.
+
+## 8. Global Settings
+- [ ] **Backup All**: Verify downloading a full backup of all books.
+- [ ] **Restore**: Verify restoring data from a backup file.
+- [ ] **Import Book**: Verify importing a single book from JSON.
