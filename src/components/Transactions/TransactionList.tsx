@@ -501,9 +501,13 @@ export function TransactionList() {
                                         })}
 
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex justify-end gap-2">
                                                 <button
-                                                    onClick={() => setViewTransaction(tx)}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setViewTransaction(tx);
+                                                    }}
                                                     className="p-1 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded"
                                                     title="View Details"
                                                 >
@@ -517,7 +521,11 @@ export function TransactionList() {
                                                     <Edit2 size={16} />
                                                 </Link>
                                                 <button
-                                                    onClick={() => handleDelete(tx.id)}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleDelete(tx.id);
+                                                    }}
                                                     className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
                                                     title="Delete"
                                                 >
