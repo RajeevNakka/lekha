@@ -34,6 +34,8 @@ export function EditTransaction() {
     const handleSubmit = async (data: any) => {
         if (!currentUser) return;
 
+        console.log('Form data received:', data); // Debug log
+
         // Handle Date & Time
         // data.date from datetime-local is "YYYY-MM-DDTHH:mm"
         const dateObj = new Date(data.date);
@@ -45,21 +47,23 @@ export function EditTransaction() {
             amount: Number(data.amount), // Ensure number
             date: data.date, // Keep full datetime string
             description: data.description,
-            category_id: data.category || 'uncategorized',
+            category_id: data.category_id || 'uncategorized',
             party_id: data.party,
             custom_data: { ...transaction.custom_data },
             created_at: createdAtStr // Update timestamp
         };
 
-        // Update custom fields
+        // Update custom fields - exclude all core fields from custom_data
+        const coreFields = ['type', 'amount', 'date', 'description', 'category_id', 'party'];
         Object.keys(data).forEach(key => {
-            if (!['type', 'amount', 'date', 'description', 'category', 'party'].includes(key)) {
+            if (!coreFields.includes(key)) {
                 if (updatedTransaction.custom_data) {
                     updatedTransaction.custom_data[key] = data[key];
                 }
             }
         });
 
+        console.log('Updated transaction:', updatedTransaction); // Debug log
         await db.updateTransaction(updatedTransaction);
         navigate('/transactions');
     };
@@ -70,7 +74,7 @@ export function EditTransaction() {
         amount: transaction.amount,
         date: transaction.date, // Use stored date (which should be datetime string)
         description: transaction.description,
-        category: transaction.category_id,
+        category_id: transaction.category_id,
         party: transaction.party_id,
         ...transaction.custom_data
     };

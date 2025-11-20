@@ -133,9 +133,15 @@ export function TransactionList() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this transaction?')) {
+        console.log('Delete button clicked for transaction:', id);
+        const confirmed = confirm('Are you sure you want to delete this transaction?');
+        console.log('User confirmed deletion:', confirmed);
+
+        if (confirmed) {
             try {
+                console.log('Attempting to delete transaction:', id);
                 await db.deleteTransaction(id);
+                console.log('Transaction deleted successfully');
                 await loadTransactions();
             } catch (error) {
                 console.error("Failed to delete transaction:", error);
