@@ -1,0 +1,53 @@
+# Testing Tasks
+
+- [ ] **Book Management**
+    - [ ] Create New Book
+    - [ ] Switch Books
+    - [ ] Book Settings
+        - [ ] Add/Remove fields
+        - [x] Multiline Fields
+        - [ ] Reorder fields
+        - [ ] Configure field visibility
+        - [ ] Export Book
+        - [ ] Export Transactions
+        - [x] Import Transactions
+        - [ ] Delete Book
+- [ ] **Transaction Management**
+    - [x] Create Transaction
+        - [ ] Field types
+        - [x] Multiline Text
+        - [ ] Validation
+        - [ ] Custom fields
+    - [x] Edit Transaction <!-- Previously failing - Now resolved by Dev -->
+    - [x] Delete Transaction <!-- Previously failing - Now resolved by Dev -->
+    - [ ] List View
+        - [x] Date & Time display
+        - [ ] Sorting
+        - [ ] Filtering
+        - [ ] Column customization
+        - [ ] Search
+- [ ] **Data Persistence**
+    - [ ] Verify persistence
+- [x] **Audit Logs**
+    - [x] View History
+    - [x] Verify Details
+- [ ] **Dashboard**
+    - [ ] Quick Stats
+    - [ ] Recent Activity
+    - [ ] Quick Actions
+- [x] **Reports Module**
+    - [x] Cash Flow
+    - [x] Category Breakdown
+    - [x] Monthly Trends
+    - [x] Party Ledger
+    - [x] Custom Reports
+    - [x] Filtering
+- [x] **Smart CSV Import**
+    - [x] Import Modal
+    - [x] CSV Parsing
+    - [x] Column Mapping
+    - [x] Batch Processing
+- [ ] **Global Settings**
+    - [ ] Backup All
+    - [ ] Restore
+    - [ ] Import Book

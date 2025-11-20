@@ -29,13 +29,7 @@ export function EditTransaction() {
     if (loading) return <div>Loading...</div>;
     if (!transaction) return <div>Transaction not found</div>;
 
-    const fields: FieldConfig[] = [
-        { key: 'type', label: 'Type', type: 'dropdown', visible: true, required: true, order: 0, options: ['income', 'expense', 'transfer'] },
-        { key: 'amount', label: 'Amount', type: 'number', visible: true, required: true, order: 1, validation: { min: 0 } },
-        { key: 'date', label: 'Date & Time', type: 'date', visible: true, required: true, order: 2 },
-        { key: 'description', label: 'Description', type: 'text', visible: true, required: true, order: 3, multiline: true },
-        ...activeBook.field_config
-    ];
+    const fields: FieldConfig[] = [...activeBook.field_config].sort((a, b) => a.order - b.order);
 
     const handleSubmit = async (data: any) => {
         if (!currentUser) return;
@@ -43,14 +37,13 @@ export function EditTransaction() {
         // Handle Date & Time
         // data.date from datetime-local is "YYYY-MM-DDTHH:mm"
         const dateObj = new Date(data.date);
-        const dateStr = data.date.split('T')[0]; // YYYY-MM-DD
         const createdAtStr = dateObj.toISOString();
 
         const updatedTransaction: Transaction = {
             ...transaction,
             type: data.type,
-            amount: data.amount,
-            date: dateStr,
+            amount: Number(data.amount), // Ensure number
+            date: data.date, // Keep full datetime string
             description: data.description,
             category_id: data.category || 'uncategorized',
             party_id: data.party,
@@ -75,7 +68,7 @@ export function EditTransaction() {
     const defaultValues = {
         type: transaction.type,
         amount: transaction.amount,
-        date: transaction.created_at ? transaction.created_at.slice(0, 16) : transaction.date, // Use created_at for time
+        date: transaction.date, // Use stored date (which should be datetime string)
         description: transaction.description,
         category: transaction.category_id,
         party: transaction.party_id,
