@@ -1,5 +1,5 @@
 import { useStore } from '../../lib/store';
-import { formatCurrency, formatDate } from '../../lib/utils';
+import { formatCurrency, formatDateTime } from '../../lib/utils';
 import { ArrowUpRight, Search, Filter, Edit2, Trash2, History, Eye, Settings, Check } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../../lib/db';
@@ -483,7 +483,7 @@ export function TransactionList() {
                                             return (
                                                 <td key={field.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-[200px] truncate" title={value ? String(value) : ''}>
                                                     {value ? (
-                                                        field.type === 'date' ? formatDate(String(value)) : String(value)
+                                                        field.type === 'date' ? formatDateTime(String(value)) : String(value)
                                                     ) : '-'}
                                                 </td>
                                             );

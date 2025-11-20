@@ -313,6 +313,17 @@ export function BookSettings() {
                                         <option value="dropdown">Dropdown</option>
                                         <option value="checkbox">Checkbox</option>
                                     </select>
+                                    {field.type === 'text' && (
+                                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={field.multiline || false}
+                                                onChange={(e) => handleFieldChange(index, { multiline: e.target.checked })}
+                                                className="rounded text-primary-600 focus:ring-primary-500"
+                                            />
+                                            <span className="text-xs text-gray-500">Multiline (Textarea)</span>
+                                        </label>
+                                    )}
                                 </div>
 
                                 {/* Options (for dropdown) */}

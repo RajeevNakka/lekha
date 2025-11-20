@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../../lib/store';
+import { db } from '../../lib/db';
 import type { AuditLog } from '../../types';
 import { History, ArrowRight } from 'lucide-react';
 
@@ -16,10 +17,9 @@ export function TransactionHistory() {
 
     const loadLogs = async () => {
         if (!activeBookId) return;
-        // TODO: Implement getAuditLogs in db.ts
-        // const fetchedLogs = await db.getAuditLogs(activeBookId);
-        // fetchedLogs.sort((a: AuditLog, b: AuditLog) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setLogs([]);
+        const fetchedLogs = await db.getAuditLogs(activeBookId);
+        fetchedLogs.sort((a: AuditLog, b: AuditLog) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setLogs(fetchedLogs);
         setLoading(false);
     };
 

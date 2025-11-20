@@ -6,6 +6,16 @@ export function formatDate(date: string | Date): string {
     return new Date(date).toLocaleDateString();
 }
 
+export function formatDateTime(date: string | Date): string {
+    return new Date(date).toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
 export const formatCurrency = (amount: number, currency: string = 'INR') => {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',

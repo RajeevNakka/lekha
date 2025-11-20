@@ -149,5 +149,10 @@ export const db = {
     async getBooks() {
         const db = await initDB();
         return db.getAll('books');
+    },
+
+    async getAuditLogs(bookId: string) {
+        const db = await initDB();
+        return db.getAllFromIndex('audit_logs', 'by-book', bookId);
     }
 };
