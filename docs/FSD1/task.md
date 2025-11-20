@@ -7,3 +7,5 @@
 - [x] Update `features_to_test.md` <!-- id: 4 -->
 - [x] Create git worktree for testing <!-- id: 5 -->
 - [x] Organize documentation in `docs/` <!-- id: 6 -->
+- [x] Fix reported bugs from Tester Agent <!-- id: 7 -->
+- [x] Merge fixes to testing worktree <!-- id: 8 -->
