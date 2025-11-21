@@ -4,6 +4,7 @@ import { DynamicForm } from '../Forms/DynamicForm';
 import type { Transaction, FieldConfig } from '../../types';
 import { db } from '../../lib/db';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toDatetimeLocalFormat } from '../../lib/utils';
 
 export function EditTransaction() {
     const { transactionId } = useParams();
@@ -73,15 +74,21 @@ export function EditTransaction() {
     };
 
     // Prepare default values from transaction object
+    console.log('EditTransaction - transaction.date:', transaction.date);
+    console.log('EditTransaction - converted date:', toDatetimeLocalFormat(transaction.date));
+
     const defaultValues = {
+        ...transaction.custom_data, // Spread custom_data FIRST
+        // Then override with core fields to prevent custom_data from overwriting them
         type: transaction.type,
         amount: transaction.amount,
-        date: transaction.date, // Use stored date (which should be datetime string)
+        date: toDatetimeLocalFormat(transaction.date), // Convert to datetime-local format
         description: transaction.description,
         category_id: transaction.category_id,
         party: transaction.party_id,
-        ...transaction.custom_data
     };
+
+    console.log('EditTransaction - defaultValues:', defaultValues);
 
     return (
         <div className="max-w-2xl mx-auto">
