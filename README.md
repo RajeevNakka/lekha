@@ -68,10 +68,16 @@ npm install
 
 3. Start the development server:
 ```bash
+# For Main Development (Port 3000)
 npm run dev
+
+# For QA/Testing (Port 4000)
+npm run qa
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+4. Open your browser:
+   - Dev: `http://localhost:3000`
+   - QA: `http://localhost:4000`
 
 ### Build for Production
 
