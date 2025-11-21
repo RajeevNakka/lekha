@@ -35,6 +35,7 @@ export function EditTransaction() {
         if (!currentUser) return;
 
         console.log('Form data received:', data); // Debug log
+        console.log('Amount in form data:', data.amount, 'Type:', typeof data.amount); // Debug amount specifically
 
         // Handle Date & Time
         // data.date from datetime-local is "YYYY-MM-DDTHH:mm"
@@ -64,7 +65,10 @@ export function EditTransaction() {
         });
 
         console.log('Updated transaction:', updatedTransaction); // Debug log
-        await db.updateTransaction(updatedTransaction);
+        console.log('Updated transaction amount:', updatedTransaction.amount, 'Type:', typeof updatedTransaction.amount); // Debug amount field specifically
+
+        const result = await db.updateTransaction(updatedTransaction);
+        console.log('DB Update result:', result); // Debug DB update result
         navigate('/transactions');
     };
 

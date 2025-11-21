@@ -28,7 +28,7 @@ export function Sidebar() {
     return (
         <aside
             className={clsx(
-                "fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col",
+                "hidden md:flex fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex-col",
                 sidebarOpen ? "w-64" : "w-20"
             )}
         >
