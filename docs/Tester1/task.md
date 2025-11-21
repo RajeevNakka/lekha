@@ -1,59 +1,29 @@
-# Testing Tasks
-
-- [ ] **Book Management**
-    - [ ] Create New Book
-    - [ ] Switch Books
-    - [ ] Book Settings
-        - [ ] Add/Remove fields
-        - [x] Multiline Fields
-        - [ ] Reorder fields
-        - [ ] Configure field visibility
-        - [ ] Export Book
-        - [ ] Export Transactions
-        - [x] Import Transactions
-        - [ ] Delete Book
-- [ ] **Transaction Management**
-    - [x] Create Transaction
-        - [ ] Field types
-        - [x] Multiline Text
-        - [ ] Validation
+        - [x] Validation <!-- Required fields enforced, allows negative amounts -->
         - [ ] Custom fields
     - [ ] Edit Transaction <!-- DEF-002: QA FAILED - Amount concatenates instead of replaces -->
     - [x] Delete Transaction <!-- DEF-003: QA VERIFIED ✅ - Custom dialog working -->
     - [ ] List View
         - [x] Date & Time display
-        - [ ] Sorting
-        - [ ] Filtering
-        - [ ] Column customization
-        - [ ] Search
+        - [x] Sorting <!-- Via Filters panel -->
+        - [x] Filtering <!-- QA Verified ✅ -->
+        - [x] Column customization <!-- QA Verified ✅ -->
+        - [x] Search <!-- QA Verified ✅ -->
 - [x] **Data Persistence**
     - [x] Verify persistence <!-- QA Verified: Data saves correctly to IndexedDB -->
 - [x] **Audit Logs**
-    - [x] View History
-    - [x] Verify Details
-- [x] **Dashboard**
-    - [x] Quick Stats
-    - [x] Recent Activity
-    - [ ] Quick Actions <!-- FAILED: Missing / Broken Navigation (DEF-005) -->
-- [x] **Reports Module**
-    - [x] Cash Flow
-    - [x] Category Breakdown
-    - [x] Monthly Trends
-    - [x] Party Ledger
-    - [x] Custom Reports
-    - [x] Filtering
-- [x] **Smart CSV Import**
-    - [x] Import Modal
-    - [x] CSV Parsing
-    - [x] Column Mapping
-    - [x] Batch Processing
-- [ ] **Global Settings**
-    - [ ] Backup All
-    - [ ] Restore
-    - [ ] Import Book
 
-## QA Verification Status (2025-11-21)
-
+### Defect Verification
 - [x] DEF-002 Verification: FAILED - Amount concatenates
 - [x] DEF-003 Verification: PASSED ✅ - Delete dialog working
 - [x] DEF-004 Verification: PASSED ✅ - Mobile UI responsive
+
+### Feature Testing Completed
+- [x] Book Management: Create/Switch ✅, Settings ⚠️ (save issue), Delete ❌ (not working)
+- [x] Transaction List: Search ✅, Filters ✅, Columns ✅
+- [x] Transaction Validation: Required fields ✅, Negative amounts allowed
+- [ ] Global Settings: Not found in UI
+
+### New Defects Found
+- DEF-006: Book Settings Save not working
+- DEF-007: Global Settings not accessible
+- DEF-008: Delete Book not working

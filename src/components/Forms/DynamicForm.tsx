@@ -71,6 +71,10 @@ export function DynamicForm({ fields, onSubmit, onCancel, defaultValues, isSubmi
     const schema = generateSchema(fields);
     type FormValues = z.infer<typeof schema>;
 
+    // Debug logging
+    console.log('DynamicForm defaultValues:', defaultValues);
+    console.log('DynamicForm fields:', fields.map(f => ({ key: f.key, type: f.type })));
+
     const {
         register,
         handleSubmit,

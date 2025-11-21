@@ -27,7 +27,16 @@ export interface Book {
     field_config: FieldConfig[];
     members?: { user_id: string; role: Role }[];
     primary_amount_field?: string; // Key of the field to use as "Amount" for calculations
+    preferences?: {
+        dateFormat?: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
+        defaultTransactionTime?: 'current' | 'startOfDay' | string; // 'HH:mm' format for custom
+        defaultType?: 'income' | 'expense' | 'transfer';
+        defaultCategory?: string;
+        decimalPlaces?: number;
+        showZeroDecimals?: boolean;
+    };
 }
+
 
 export interface Transaction {
     id: string;
