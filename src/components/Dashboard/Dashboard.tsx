@@ -1,6 +1,6 @@
 import { useStore } from '../../lib/store';
 import { Link } from 'react-router-dom';
-import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Settings } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { useEffect, useState } from 'react';
 import { db } from '../../lib/db';
@@ -100,6 +100,28 @@ export function Dashboard() {
                         <Plus size={20} />
                         <span>New Transaction</span>
                     </Link>
+                </div>
+            </div>
+
+            {/* Quick Actions - Book Settings */}
+            <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl shadow-sm border border-primary-100 p-6">
+                <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary-600 text-white rounded-xl">
+                        <Settings size={24} />
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">Book Settings</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Configure fields, currency, and preferences for "{activeBook.name}".
+                        </p>
+                        <Link
+                            to={`/books/${activeBookId}/settings`}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
+                        >
+                            <Settings size={16} />
+                            <span>Go to Book Settings</span>
+                        </Link>
+                    </div>
                 </div>
             </div>
 

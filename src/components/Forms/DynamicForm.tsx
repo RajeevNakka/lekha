@@ -25,7 +25,7 @@ export function DynamicForm({ fields, onSubmit, onCancel, defaultValues, isSubmi
 
             switch (field.type) {
                 case 'number': {
-                    let numSchema = z.number();
+                    let numSchema = z.coerce.number();
                     if (field.validation?.min !== undefined) numSchema = numSchema.min(field.validation.min);
                     if (field.validation?.max !== undefined) numSchema = numSchema.max(field.validation.max);
                     schema = numSchema;
@@ -118,7 +118,7 @@ export function DynamicForm({ fields, onSubmit, onCancel, defaultValues, isSubmi
                                     id={field.key}
                                     type="number"
                                     step="0.01"
-                                    {...register(field.key, { valueAsNumber: true })}
+                                    {...register(field.key)}
                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
                                 />
                             )}

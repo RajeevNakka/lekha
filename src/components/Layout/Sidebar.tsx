@@ -109,20 +109,6 @@ export function Sidebar() {
 
                 <div className="pt-4 mt-4 border-t border-gray-100">
                     <NavLink
-                        to={`/books/${activeBookId}/settings`}
-                        className={({ isActive }) => clsx(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                            isActive
-                                ? "bg-primary-50 text-primary-700"
-                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                            !sidebarOpen && "justify-center px-2"
-                        )}
-                    >
-                        <Settings size={20} className="shrink-0" />
-                        {sidebarOpen && <span className="font-medium">Book Settings</span>}
-                    </NavLink>
-
-                    <NavLink
                         to="/settings"
                         className={({ isActive }) => clsx(
                             "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
@@ -132,8 +118,8 @@ export function Sidebar() {
                             !sidebarOpen && "justify-center px-2"
                         )}
                     >
-                        <Settings size={20} className="shrink-0 text-gray-400" />
-                        {sidebarOpen && <span className="font-medium">Global Settings</span>}
+                        <Settings size={20} className="shrink-0" />
+                        {sidebarOpen && <span className="font-medium">Settings</span>}
                     </NavLink>
                 </div>
             </nav>

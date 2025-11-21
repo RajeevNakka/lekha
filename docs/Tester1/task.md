@@ -18,23 +18,23 @@
         - [x] Multiline Text
         - [ ] Validation
         - [ ] Custom fields
-    - [x] Edit Transaction <!-- Previously failing - Now resolved by Dev -->
-    - [x] Delete Transaction <!-- Previously failing - Now resolved by Dev -->
+    - [ ] Edit Transaction <!-- DEF-002: QA FAILED - Amount concatenates instead of replaces -->
+    - [x] Delete Transaction <!-- DEF-003: QA VERIFIED ✅ - Custom dialog working -->
     - [ ] List View
         - [x] Date & Time display
         - [ ] Sorting
         - [ ] Filtering
         - [ ] Column customization
         - [ ] Search
-- [ ] **Data Persistence**
-    - [ ] Verify persistence
+- [x] **Data Persistence**
+    - [x] Verify persistence <!-- QA Verified: Data saves correctly to IndexedDB -->
 - [x] **Audit Logs**
     - [x] View History
     - [x] Verify Details
-- [ ] **Dashboard**
-    - [ ] Quick Stats
-    - [ ] Recent Activity
-    - [ ] Quick Actions
+- [x] **Dashboard**
+    - [x] Quick Stats
+    - [x] Recent Activity
+    - [ ] Quick Actions <!-- FAILED: Missing / Broken Navigation (DEF-005) -->
 - [x] **Reports Module**
     - [x] Cash Flow
     - [x] Category Breakdown
@@ -51,3 +51,9 @@
     - [ ] Backup All
     - [ ] Restore
     - [ ] Import Book
+
+## QA Verification Status (2025-11-21)
+
+- [x] DEF-002 Verification: FAILED - Amount concatenates
+- [x] DEF-003 Verification: PASSED ✅ - Delete dialog working
+- [x] DEF-004 Verification: PASSED ✅ - Mobile UI responsive

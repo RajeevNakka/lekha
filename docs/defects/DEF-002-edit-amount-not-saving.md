@@ -92,3 +92,42 @@ This is a critical bug as it prevents users from correcting transaction amounts.
 - Changed Amount from 10 to 999
 - After save, Amount remained at 10
 - Issue confirmed as NOT FIXED
+
+---
+
+## QA Verification (Final)
+
+**Date:** 2025-11-21  
+**Tester:** Tester 1  
+**Environment:** QA Server (port 4000)  
+**Status:** ❌ **VERIFICATION FAILED**
+
+### Test Steps
+1. Opened http://localhost:4000/lekha/transactions
+2. Created transaction "Persistence Test" with Amount 777
+3. Clicked Edit on the transaction
+4. Changed Amount field from 777 to 888
+5. Scrolled down and clicked Save Transaction
+6. Observed result in transaction list
+7. Reloaded page to verify persistence
+
+### Expected Result
+- Amount should update from 777 to 888
+- New amount should persist after page reload
+
+### Actual Result
+- Amount field **concatenates instead of replaces**: became **777888** instead of 888
+- The incorrect concatenated value (777888) persists after reload
+- Data saves successfully, but the wrong value is saved
+
+### Root Cause Analysis
+The amount input field is not properly clearing its existing value before accepting new input in edit mode. When the user types a new amount, the digits are appended to the existing value instead of replacing it.
+
+### Evidence
+**Video Recording:** file:///C:/Users/rajee/.gemini/antigravity/brain/34dd5cb7-35c2-450c-adf6-5f4ccbe73454/verify_def002_edit_1763740211267.webp
+
+### Recommended Fix
+1. Ensure the amount input field's `defaultValues` in react-hook-form is correctly clearing the field
+2. Add `onFocus` handler to select all text in the amount field when editing
+3. Verify that the input type="number" is properly replacing (not concatenating) values
+4. Consider using explicit `setValue` to clear the field before populating with edit data

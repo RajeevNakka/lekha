@@ -61,3 +61,25 @@
 - [ ] **Backup All**: Verify downloading a full backup of all books.
 - [ ] **Restore**: Verify restoring data from a backup file.
 - [ ] **Import Book**: Verify importing a single book from JSON.
+
+## 9. Mobile UI (New)
+- [ ] **Responsive Navigation**:
+    - [ ] Verify Bottom Navigation Bar appears on mobile (< 768px).
+    - [ ] Verify Sidebar appears on desktop (> 768px).
+    - [ ] Verify navigation links work correctly in both modes.
+- [ ] **Transaction List (Mobile)**:
+    - [ ] Verify transactions are displayed as Cards on mobile.
+    - [ ] Verify "Add Transaction" floating button is visible and functional.
+    - [ ] Verify Edit/Delete actions are accessible in Card view.
+
+## 10. Regression Testing (Critical Fixes)
+- [ ] **DEF-002: Edit Amount**:
+    - [ ] Edit a transaction's amount.
+    - [ ] Save and refresh.
+    - [ ] Verify the new amount is persisted.
+- [ ] **DEF-003: Delete Transaction**:
+    - [ ] Click delete on a transaction.
+    - [ ] Verify confirmation dialog appears.
+    - [ ] Confirm delete.
+    - [ ] Verify transaction is removed from list.
+
