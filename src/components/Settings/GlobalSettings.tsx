@@ -14,6 +14,15 @@ export function GlobalSettings() {
     const [showImportNewBookModal, setShowImportNewBookModal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [pendingRestoreFile, setPendingRestoreFile] = useState<File | null>(null);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [bookToDelete, setBookToDelete] = useState<{ id: string, name: string } | null>(null);
+
+    const [showOverwriteModal, setShowOverwriteModal] = useState(false);
+    const [pendingImportData, setPendingImportData] = useState<any | null>(null);
+
     useEffect(() => {
         fetchBooks();
     }, [fetchBooks]);
@@ -48,32 +57,28 @@ export function GlobalSettings() {
         }
     };
 
-    const handleRestoreBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleRestoreClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        setPendingRestoreFile(file);
+        setShowRestoreModal(true);
+        event.target.value = ''; // Reset input
+    };
 
-        if (!window.confirm('WARNING: This will OVERWRITE all existing data with the backup. Are you sure?')) {
-            event.target.value = '';
-            return;
-        }
+    const confirmRestore = async () => {
+        if (!pendingRestoreFile) return;
 
         setIsImporting(true);
         setImportError(null);
+        setShowRestoreModal(false);
 
         try {
-            const text = await file.text();
+            const text = await pendingRestoreFile.text();
             const data = JSON.parse(text);
 
             if (!data.books || !Array.isArray(data.books)) {
                 throw new Error('Invalid backup format: missing books');
             }
-
-            // Clear existing data (simulated by just overwriting for now, but ideally we should clear DB first)
-            // For a true restore, we should probably clear the DB.
-            // Let's iterate and add/put.
-
-            // Note: This is a "merge/overwrite" restore. To do a clean restore, we'd need a db.clear() method.
-            // For now, we'll just upsert everything.
 
             for (const book of data.books) {
                 await db.updateBook(book);
@@ -93,7 +98,7 @@ export function GlobalSettings() {
             setImportError(error instanceof Error ? error.message : 'Unknown error during restore');
         } finally {
             setIsImporting(false);
-            event.target.value = '';
+            setPendingRestoreFile(null);
         }
     };
 
@@ -113,20 +118,39 @@ export function GlobalSettings() {
             }
 
             const existing = books.find(b => b.id === data.book.id);
-            let bookId = data.book.id;
 
             if (existing) {
-                if (!window.confirm(`Book "${data.book.name}" already exists. Do you want to overwrite it? Cancel to import as a copy.`)) {
-                    bookId = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    data.book.id = bookId;
-                    data.book.name = `${data.book.name} (Copy)`;
+                setPendingImportData(data);
+                setShowOverwriteModal(true);
+                setIsImporting(false); // Pause importing state while waiting for user
+                event.target.value = '';
+                return;
+            }
 
-                    if (data.transactions) {
-                        data.transactions.forEach((tx: any) => {
-                            tx.book_id = bookId;
-                            tx.id = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                        });
-                    }
+            await processImport(data);
+        } catch (error) {
+            console.error('Import failed:', error);
+            setImportError(error instanceof Error ? error.message : 'Unknown error during import');
+            setIsImporting(false);
+        }
+        event.target.value = '';
+    };
+
+    const processImport = async (data: any, asCopy: boolean = false) => {
+        setIsImporting(true);
+        try {
+            let bookId = data.book.id;
+
+            if (asCopy) {
+                bookId = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                data.book.id = bookId;
+                data.book.name = `${data.book.name} (Copy)`;
+
+                if (data.transactions) {
+                    data.transactions.forEach((tx: any) => {
+                        tx.book_id = bookId;
+                        tx.id = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    });
                 }
             }
 
@@ -143,11 +167,25 @@ export function GlobalSettings() {
             alert(`Book "${data.book.name}" imported successfully`);
             navigate('/');
         } catch (error) {
-            console.error('Import failed:', error);
+            console.error('Import processing failed:', error);
             setImportError(error instanceof Error ? error.message : 'Unknown error during import');
         } finally {
             setIsImporting(false);
-            event.target.value = '';
+            setPendingImportData(null);
+            setShowOverwriteModal(false);
+        }
+    };
+
+    const handleDeleteClick = (book: { id: string, name: string }) => {
+        setBookToDelete(book);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (bookToDelete) {
+            await deleteBook(bookToDelete.id);
+            setShowDeleteModal(false);
+            setBookToDelete(null);
         }
     };
 
@@ -218,7 +256,7 @@ export function GlobalSettings() {
                         <input
                             type="file"
                             accept=".json"
-                            onChange={handleRestoreBackup}
+                            onChange={handleRestoreClick}
                             disabled={isImporting}
                             className="hidden"
                             id="restore-backup"
@@ -264,11 +302,7 @@ export function GlobalSettings() {
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => {
-                                        if (window.confirm(`Are you sure you want to delete "${book.name}"?`)) {
-                                            deleteBook(book.id);
-                                        }
-                                    }}
+                                    onClick={() => handleDeleteClick(book)}
                                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                     title="Delete Book"
                                 >
@@ -295,6 +329,111 @@ export function GlobalSettings() {
                     onClose={() => setShowImportNewBookModal(false)}
                     onSuccess={() => setShowImportNewBookModal(false)}
                 />
+            )}
+
+            {/* Restore Confirmation Modal */}
+            {showRestoreModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4 text-red-600">
+                                <AlertTriangle size={24} />
+                                <h3 className="text-xl font-bold">Warning: Overwrite Data</h3>
+                            </div>
+                            <p className="text-gray-600 mb-6">
+                                You are about to restore a backup. This will <span className="font-bold text-red-600">OVERWRITE</span> all existing data.
+                                This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowRestoreModal(false);
+                                        setPendingRestoreFile(null);
+                                    }}
+                                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmRestore}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                                >
+                                    Yes, Restore Backup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Book Modal */}
+            {showDeleteModal && bookToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+                        <div className="p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Book?</h3>
+                            <p className="text-gray-600 mb-6">
+                                Are you sure you want to delete <span className="font-bold text-gray-900">{bookToDelete.name}</span>?
+                                This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setBookToDelete(null);
+                                    }}
+                                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                                >
+                                    Delete Book
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Import Overwrite Modal */}
+            {showOverwriteModal && pendingImportData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+                        <div className="p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Book Already Exists</h3>
+                            <p className="text-gray-600 mb-6">
+                                The book <span className="font-bold text-gray-900">{pendingImportData.book.name}</span> already exists.
+                                Do you want to overwrite it with the imported version?
+                            </p>
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={() => processImport(pendingImportData, false)}
+                                    className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                                >
+                                    Overwrite Existing Book
+                                </button>
+                                <button
+                                    onClick={() => processImport(pendingImportData, true)}
+                                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition-colors"
+                                >
+                                    Import as Copy
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowOverwriteModal(false);
+                                        setPendingImportData(null);
+                                    }}
+                                    className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
