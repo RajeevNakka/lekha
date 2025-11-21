@@ -6,12 +6,17 @@ import { db } from '../../lib/db';
 import type { Transaction, FieldConfig } from '../../types';
 import { Link } from 'react-router-dom';
 import { TransactionDetailsModal } from './TransactionDetailsModal';
+import { ConfirmDialog } from '../Common/ConfirmDialog';
 
 export function TransactionList() {
     const { activeBookId, books } = useStore();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewTransaction, setViewTransaction] = useState<Transaction | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transactionId: string | null }>({
+        isOpen: false,
+        transactionId: null
+    });
 
     // Column Management State
     const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -133,21 +138,24 @@ export function TransactionList() {
     };
 
     const handleDelete = async (id: string) => {
-        console.log('Delete button clicked for transaction:', id);
-        const confirmed = confirm('Are you sure you want to delete this transaction?');
-        console.log('User confirmed deletion:', confirmed);
+        setDeleteConfirm({ isOpen: true, transactionId: id });
+    };
 
-        if (confirmed) {
-            try {
-                console.log('Attempting to delete transaction:', id);
-                await db.deleteTransaction(id);
-                console.log('Transaction deleted successfully');
-                await loadTransactions();
-            } catch (error) {
-                console.error("Failed to delete transaction:", error);
-                alert("Failed to delete transaction. Please try again.");
-            }
+    const confirmDelete = async () => {
+        if (!deleteConfirm.transactionId) return;
+
+        try {
+            await db.deleteTransaction(deleteConfirm.transactionId);
+            await loadTransactions();
+            setDeleteConfirm({ isOpen: false, transactionId: null });
+        } catch (error) {
+            console.error("Failed to delete transaction:", error);
+            alert("Failed to delete transaction. Please try again.");
         }
+    };
+
+    const cancelDelete = () => {
+        setDeleteConfirm({ isOpen: false, transactionId: null });
     };
 
     // Helper to get field value (handles custom_data and core fields)
@@ -549,6 +557,18 @@ export function TransactionList() {
                     onClose={() => setViewTransaction(null)}
                 />
             )}
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={deleteConfirm.isOpen}
+                title="Delete Transaction"
+                message="Are you sure you want to delete this transaction? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+                onConfirm={confirmDelete}
+                onCancel={cancelDelete}
+            />
         </div>
     );
 }
