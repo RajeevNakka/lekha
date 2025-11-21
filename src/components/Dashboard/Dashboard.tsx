@@ -87,41 +87,29 @@ export function Dashboard() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
                     <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
                     <p className="text-gray-500">Overview of {activeBook.name}</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex items-center gap-3">
+                    <Link
+                        to={`/books/${activeBookId}/settings`}
+                        className="group relative p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors"
+                        title="Book Settings"
+                    >
+                        <Settings size={20} />
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                            Book Settings
+                        </span>
+                    </Link>
                     <Link
                         to="/transactions/new"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm hover:shadow-md"
+                        className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm hover:shadow-md"
                     >
                         <Plus size={20} />
                         <span>New Transaction</span>
                     </Link>
-                </div>
-            </div>
-
-            {/* Quick Actions - Book Settings */}
-            <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl shadow-sm border border-primary-100 p-6">
-                <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary-600 text-white rounded-xl">
-                        <Settings size={24} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">Book Settings</h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                            Configure fields, currency, and preferences for "{activeBook.name}".
-                        </p>
-                        <Link
-                            to={`/books/${activeBookId}/settings`}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
-                        >
-                            <Settings size={16} />
-                            <span>Go to Book Settings</span>
-                        </Link>
-                    </div>
                 </div>
             </div>
 
