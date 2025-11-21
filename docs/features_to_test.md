@@ -88,8 +88,20 @@
 
 ## 8. Global Settings
 - [ ] **Backup All**: Verify downloading a full backup of all books.
-- [ ] **Restore**: Verify restoring data from a backup file.
-- [ ] **Import Book**: Verify importing a single book from JSON.
+- [ ] **Restore**:
+    - [ ] Select a backup file.
+    - [ ] **Verify Warning Modal**: Check that a custom modal appears (not browser alert) warning about data overwrite.
+    - [ ] Cancel restore and verify nothing happens.
+    - [ ] Confirm restore and verify data is updated.
+- [ ] **Import Book**:
+    - [ ] Import a new book JSON.
+    - [ ] **Verify Overwrite Modal**: Try importing an existing book and check for custom modal options (Overwrite vs Copy).
+    - [ ] Verify "Import as Copy" creates a duplicate with new ID.
+- [ ] **Delete Book (Global)**:
+    - [ ] Click delete icon for a book.
+    - [ ] **Verify Delete Modal**: Check that a custom modal appears asking for confirmation.
+    - [ ] Cancel and verify book remains.
+    - [ ] Confirm and verify book is deleted.
 
 ## 9. Mobile UI (New)
 - [ ] **Responsive Navigation**:
