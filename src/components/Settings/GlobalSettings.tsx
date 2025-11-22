@@ -5,6 +5,7 @@ import { Download, Upload, AlertTriangle, HardDrive, Database, Book as BookIcon,
 import { useNavigate } from 'react-router-dom';
 import type { Transaction } from '../../types';
 import { ImportNewBookModal } from './ImportNewBookModal';
+import { TemplateManager } from '../Templates/TemplateManager';
 
 export function GlobalSettings() {
     const { books, fetchBooks, setActiveBook, deleteBook, activeBookId } = useStore();
@@ -189,131 +190,194 @@ export function GlobalSettings() {
         }
     };
 
+    const [activeTab, setActiveTab] = useState<'general' | 'templates' | 'about'>('general');
+
+    // ... (keep existing handlers: handleBackupAll, handleRestoreClick, confirmRestore, handleImportBook, processImport, handleDeleteClick, confirmDelete)
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Global Settings</h2>
-                <p className="text-gray-500">Manage all your books and application data.</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Global Settings</h2>
+                <p className="text-gray-500">Manage your application preferences and data.</p>
             </div>
 
-            {/* Data Management */}
-            <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Database size={20} className="text-primary-600" />
-                    Data Management
-                </h3>
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200">
+                <button
+                    onClick={() => setActiveTab('general')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'general'
+                            ? 'border-primary-600 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                >
+                    General
+                </button>
+                <button
+                    onClick={() => setActiveTab('templates')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'templates'
+                            ? 'border-primary-600 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                >
+                    Field Templates
+                </button>
+                <button
+                    onClick={() => setActiveTab('about')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'about'
+                            ? 'border-primary-600 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                >
+                    About
+                </button>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button
-                        onClick={handleBackupAll}
-                        className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                    >
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
-                            <Download size={24} />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-medium text-gray-900">Backup All Data</p>
-                            <p className="text-sm text-gray-500">Download a full backup of all books</p>
-                        </div>
-                    </button>
+            {/* Tab Content */}
+            <div className="min-h-[400px]">
+                {activeTab === 'general' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        {/* Data Management */}
+                        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <Database size={20} className="text-primary-600" />
+                                Data Management
+                            </h3>
 
-                    <div className="relative group">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImportBook}
-                            accept=".json"
-                            className="hidden"
-                        />
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-full flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            <div className="p-2 bg-green-50 text-green-600 rounded-lg group-hover:scale-110 transition-transform">
-                                <Upload size={24} />
-                            </div>
-                            <div className="text-left">
-                                <p className="font-medium text-gray-900">Import Book (JSON)</p>
-                                <p className="text-sm text-gray-500">Restore a book from a JSON backup</p>
-                            </div>
-                        </button>
-                    </div>
-
-                    <button
-                        onClick={() => setShowImportNewBookModal(true)}
-                        className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                    >
-                        <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
-                            <FileText size={24} />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-medium text-gray-900">Import CSV as New Book</p>
-                            <p className="text-sm text-gray-500">Create a new book from a CSV file</p>
-                        </div>
-                    </button>
-
-                    <div className="relative group">
-                        <input
-                            type="file"
-                            accept=".json"
-                            onChange={handleRestoreClick}
-                            disabled={isImporting}
-                            className="hidden"
-                            id="restore-backup"
-                        />
-                        <label
-                            htmlFor="restore-backup"
-                            className="w-full flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                        >
-                            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
-                                <HardDrive size={24} />
-                            </div>
-                            <div className="text-left">
-                                <p className="font-medium text-gray-900">Restore Backup</p>
-                                <p className="text-sm text-gray-500">Restore all data from backup</p>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </section>
-
-            {/* Book List */}
-            <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Books</h3>
-                <div className="space-y-3">
-                    {books.map(book => (
-                        <div key={book.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <div className="p-2 bg-primary-50 text-primary-600 rounded-lg">
-                                    <BookIcon size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-medium text-gray-900">{book.name}</h4>
-                                    <p className="text-sm text-gray-500">{book.currency} • {new Date(book.created_at).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {activeBookId !== book.id && (
-                                    <button
-                                        onClick={() => setActiveBook(book.id)}
-                                        className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                                    >
-                                        Switch To
-                                    </button>
-                                )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button
-                                    onClick={() => handleDeleteClick(book)}
-                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Delete Book"
+                                    onClick={handleBackupAll}
+                                    className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
                                 >
-                                    <Trash2 size={18} />
+                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
+                                        <Download size={24} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-medium text-gray-900">Backup All Data</p>
+                                        <p className="text-sm text-gray-500">Download a full backup of all books</p>
+                                    </div>
                                 </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
 
+                                <div className="relative group">
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleImportBook}
+                                        accept=".json"
+                                        className="hidden"
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="p-2 bg-green-50 text-green-600 rounded-lg group-hover:scale-110 transition-transform">
+                                            <Upload size={24} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="font-medium text-gray-900">Import Book (JSON)</p>
+                                            <p className="text-sm text-gray-500">Restore a book from a JSON backup</p>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={() => setShowImportNewBookModal(true)}
+                                    className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                                >
+                                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
+                                        <FileText size={24} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-medium text-gray-900">Import CSV as New Book</p>
+                                        <p className="text-sm text-gray-500">Create a new book from a CSV file</p>
+                                    </div>
+                                </button>
+
+                                <div className="relative group">
+                                    <input
+                                        type="file"
+                                        accept=".json"
+                                        onChange={handleRestoreClick}
+                                        disabled={isImporting}
+                                        className="hidden"
+                                        id="restore-backup"
+                                    />
+                                    <label
+                                        htmlFor="restore-backup"
+                                        className="w-full flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                                    >
+                                        <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
+                                            <HardDrive size={24} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="font-medium text-gray-900">Restore Backup</p>
+                                            <p className="text-sm text-gray-500">Restore all data from backup</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Book List */}
+                        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Books</h3>
+                            <div className="space-y-3">
+                                {books.map(book => (
+                                    <div key={book.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2 bg-primary-50 text-primary-600 rounded-lg">
+                                                <BookIcon size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-medium text-gray-900">{book.name}</h4>
+                                                <p className="text-sm text-gray-500">{book.currency} • {new Date(book.created_at).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {activeBookId !== book.id && (
+                                                <button
+                                                    onClick={() => setActiveBook(book.id)}
+                                                    className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                                                >
+                                                    Switch To
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleDeleteClick(book)}
+                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Delete Book"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    </div>
+                )}
+
+                {activeTab === 'templates' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <TemplateManager />
+                    </div>
+                )}
+
+                {activeTab === 'about' && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div className="w-16 h-16 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <BookIcon size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Lekha</h3>
+                        <p className="text-gray-500 mb-6">Simple, private, and flexible bookkeeping.</p>
+                        <div className="text-sm text-gray-400">
+                            <p>Version 1.0.0</p>
+                            <p>Local-first architecture</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Modals */}
             {importError && (
                 <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-start gap-2">
                     <AlertTriangle size={20} className="shrink-0 mt-0.5" />

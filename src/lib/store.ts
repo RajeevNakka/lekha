@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import type { Book, User } from '../types';
+import type { Book, User, FieldTemplate } from '../types';
 
 interface AppState {
     currentUser: User | null;
     activeBookId: string | null;
     books: Book[];
+    templates: FieldTemplate[];
     sidebarOpen: boolean;
 
     // Actions
@@ -13,10 +14,17 @@ interface AppState {
     addBook: (book: Book) => void;
     updateBook: (book: Book) => void;
     deleteBook: (bookId: string) => void;
+
+    // Template Actions
+    addTemplate: (template: FieldTemplate) => void;
+    updateTemplate: (template: FieldTemplate) => void;
+    deleteTemplate: (templateId: string) => void;
+
     toggleSidebar: () => void;
 
     // Async Actions
     fetchBooks: () => Promise<void>;
+    fetchTemplates: () => Promise<void>;
 }
 
 // Mock Data
@@ -48,6 +56,7 @@ export const useStore = create<AppState>((set) => ({
     currentUser: MOCK_USER,
     activeBookId: 'b1',
     books: [DEFAULT_BOOK],
+    templates: [],
     sidebarOpen: true,
 
     setCurrentUser: (user) => set({ currentUser: user }),
@@ -61,6 +70,16 @@ export const useStore = create<AppState>((set) => ({
 
     deleteBook: (bookId) => set((state) => ({
         books: state.books.filter((b) => b.id !== bookId)
+    })),
+
+    addTemplate: (template) => set((state) => ({ templates: [...state.templates, template] })),
+
+    updateTemplate: (updatedTemplate) => set((state) => ({
+        templates: state.templates.map((t) => t.id === updatedTemplate.id ? updatedTemplate : t)
+    })),
+
+    deleteTemplate: (templateId) => set((state) => ({
+        templates: state.templates.filter((t) => t.id !== templateId)
     })),
 
     toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
@@ -93,6 +112,16 @@ export const useStore = create<AppState>((set) => ({
             set({ books: allBooks });
         } catch (error) {
             console.error('Failed to fetch books:', error);
+        }
+    },
+
+    fetchTemplates: async () => {
+        try {
+            const { db } = await import('./db');
+            const templates = await db.getTemplates();
+            set({ templates });
+        } catch (error) {
+            console.error('Failed to fetch templates:', error);
         }
     }
 }));

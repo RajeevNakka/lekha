@@ -18,6 +18,17 @@ export interface FieldConfig {
     };
 }
 
+
+export interface FieldTemplate {
+    id: string;
+    name: string;
+    description: string;
+    field_config: FieldConfig[];
+    preferences?: Book['preferences'];
+    is_default?: boolean;
+    created_at: string;
+}
+
 export interface Book {
     id: string;
     name: string;

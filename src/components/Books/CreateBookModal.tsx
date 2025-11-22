@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { db } from '../../lib/db';
 import { generateId } from '../../lib/utils';
-import { X } from 'lucide-react';
-import type { Book } from '../../types';
+import { X, LayoutTemplate } from 'lucide-react';
+import type { Book, FieldTemplate, FieldConfig } from '../../types';
 
 interface CreateBookModalProps {
     isOpen: boolean;
@@ -14,7 +14,23 @@ export function CreateBookModal({ isOpen, onClose }: CreateBookModalProps) {
     const { addBook, setActiveBook } = useStore();
     const [name, setName] = useState('');
     const [currency, setCurrency] = useState('USD');
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('tpl_personal');
+    const [templates, setTemplates] = useState<FieldTemplate[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            const loadTemplates = async () => {
+                try {
+                    const tpls = await db.getTemplates();
+                    setTemplates(tpls);
+                } catch (error) {
+                    console.error('Failed to load templates:', error);
+                }
+            };
+            loadTemplates();
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -24,21 +40,33 @@ export function CreateBookModal({ isOpen, onClose }: CreateBookModalProps) {
 
         setIsSubmitting(true);
         try {
+            let fieldConfig: FieldConfig[] = [
+                { key: 'amount', label: 'Amount', type: 'number', required: true, visible: true, order: 1 },
+                { key: 'date', label: 'Date', type: 'date', required: true, visible: true, order: 2 },
+                { key: 'description', label: 'Description', type: 'text', required: true, visible: true, order: 3 },
+                { key: 'category_id', label: 'Category', type: 'dropdown', required: true, visible: true, order: 4, options: ['Food', 'Transport', 'Utilities', 'Salary', 'Other'] },
+                { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['income', 'expense', 'transfer'] },
+                { key: 'party', label: 'Party', type: 'text', visible: true, required: false, order: 6 }
+            ];
+
+            let preferences = {};
+
+            if (selectedTemplateId && selectedTemplateId !== 'custom') {
+                const template = templates.find(t => t.id === selectedTemplateId);
+                if (template) {
+                    fieldConfig = template.field_config;
+                    preferences = template.preferences || {};
+                }
+            }
+
             const newBook: Book = {
                 id: generateId(),
                 name,
                 currency,
                 role: 'owner',
                 created_at: new Date().toISOString(),
-                field_config: [
-                    // Default fields
-                    { key: 'amount', label: 'Amount', type: 'number', required: true, visible: true, order: 1 },
-                    { key: 'date', label: 'Date', type: 'date', required: true, visible: true, order: 2 },
-                    { key: 'description', label: 'Description', type: 'text', required: true, visible: true, order: 3 },
-                    { key: 'category_id', label: 'Category', type: 'dropdown', required: true, visible: true, order: 4, options: ['Food', 'Transport', 'Utilities', 'Salary', 'Other'] },
-                    { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['income', 'expense', 'transfer'] },
-                    { key: 'party', label: 'Party', type: 'text', visible: true, required: false, order: 6 }
-                ]
+                field_config: fieldConfig as any,
+                preferences
             };
 
             await db.addBook(newBook);
@@ -46,12 +74,15 @@ export function CreateBookModal({ isOpen, onClose }: CreateBookModalProps) {
             setActiveBook(newBook.id);
             onClose();
             setName('');
+            setSelectedTemplateId('tpl_personal');
         } catch (error) {
             console.error('Failed to create book:', error);
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -78,6 +109,33 @@ export function CreateBookModal({ isOpen, onClose }: CreateBookModalProps) {
                             autoFocus
                             required
                         />
+                    </div>
+
+                    <div>
+                        <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
+                            Template
+                        </label>
+                        <div className="relative">
+                            <select
+                                id="template"
+                                value={selectedTemplateId}
+                                onChange={(e) => setSelectedTemplateId(e.target.value)}
+                                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all bg-white appearance-none"
+                            >
+                                <option value="custom">Custom (Blank)</option>
+                                {templates.map(t => (
+                                    <option key={t.id} value={t.id}>
+                                        {t.name} {t.is_default ? '(System)' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <LayoutTemplate size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        </div>
+                        {selectedTemplate && (
+                            <p className="mt-1 text-xs text-gray-500">
+                                {selectedTemplate.description}
+                            </p>
+                        )}
                     </div>
 
                     <div>

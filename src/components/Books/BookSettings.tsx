@@ -1,286 +1,80 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useStore } from '../../lib/store';
-import { db } from '../../lib/db';
-import { Plus, Trash2, Save as SaveIcon, ArrowUp, ArrowDown, Download, FileJson, AlertTriangle, Upload, ChevronDown, ChevronRight, BookOpen, DollarSign, Calendar, Settings as SettingsIcon } from 'lucide-react';
-import type { FieldConfig, FieldType } from '../../types';
+import { SaveIcon, Upload, FileJson, Download, AlertTriangle, ChevronDown, ChevronUp, FileText, Layout, Sliders, Settings as SettingsIcon, Info } from 'lucide-react';
+import type { FieldConfig, Book } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import { ImportCSVModal } from './ImportCSVModal';
+import { SaveAsTemplateModal } from '../Templates/SaveAsTemplateModal';
+import { ApplyTemplateModal } from '../Templates/ApplyTemplateModal';
+import { FieldEditor } from '../Shared/FieldEditor';
 
 // Common currencies list
 const CURRENCIES = [
-    { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-    { code: 'USD', name: 'US Dollar', symbol: '$' },
-    { code: 'EUR', name: 'Euro', symbol: '€' },
-    { code: 'GBP', name: 'British Pound', symbol: '£' },
-    { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
-    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
-    { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
-    { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ' },
-    { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
-    { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-    { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$' },
-    { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$' },
-    { code: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
-    { code: 'KRW', name: 'South Korean Won', symbol: '₩' },
-    { code: 'MXN', name: 'Mexican Peso', symbol: '$' },
-    { code: 'BRL', name: 'Brazilian Real', symbol: 'R$' },
-    { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
+    { code: 'AED', symbol: 'dh', name: 'UAE Dirham' },
+    { code: 'SAR', symbol: 'SR', name: 'Saudi Riyal' },
 ];
 
 export function BookSettings() {
     const { activeBookId, books, updateBook, deleteBook, setActiveBook } = useStore();
-    const activeBook = books.find(b => b.id === activeBookId);
     const navigate = useNavigate();
+    const activeBook = books.find(b => b.id === activeBookId);
 
-    // State management
-    const [fields, setFields] = useState<FieldConfig[]>([]);
-    const [isDirty, setIsDirty] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-
-    // Basic Info state
-    const [bookName, setBookName] = useState('');
-    const [currency, setCurrency] = useState('');
-    const [primaryAmountField, setPrimaryAmountField] = useState('');
-    const [transactionCount, setTransactionCount] = useState(0);
-
-    // Preferences state
-    const [dateFormat, setDateFormat] = useState<'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'>('YYYY-MM-DD');
-    const [defaultTime, setDefaultTime] = useState<'current' | 'startOfDay' | string>('current');
-    const [defaultType, setDefaultType] = useState<'income' | 'expense' | 'transfer'>('expense');
-    const [defaultCategory, setDefaultCategory] = useState('');
-    const [decimalPlaces, setDecimalPlaces] = useState(2);
-    const [showZeroDecimals, setShowZeroDecimals] = useState(true);
-
-    // UI state
-    const [fieldsExpanded, setFieldsExpanded] = useState(false);
-    const [preferencesExpanded, setPreferencesExpanded] = useState(false);
+    // UI State
+    const [expandedSections, setExpandedSections] = useState({
+        fields: true,
+        preferences: false
+    });
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState('');
     const [showImportModal, setShowImportModal] = useState(false);
+    const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+    const [showApplyTemplateModal, setShowApplyTemplateModal] = useState(false);
 
-    // Load initial data
-    useEffect(() => {
-        if (activeBook) {
-            setFields([...activeBook.field_config].sort((a, b) => a.order - b.order));
-            setBookName(activeBook.name);
-            setCurrency(activeBook.currency);
-            setPrimaryAmountField(activeBook.primary_amount_field || '');
+    if (!activeBook) return null;
 
-            // Load preferences
-            const prefs = activeBook.preferences || {};
-            setDateFormat(prefs.dateFormat || 'YYYY-MM-DD');
-            setDefaultTime(prefs.defaultTransactionTime || 'current');
-            setDefaultType(prefs.defaultType || 'expense');
-            setDefaultCategory(prefs.defaultCategory || '');
-            setDecimalPlaces(prefs.decimalPlaces ?? 2);
-            setShowZeroDecimals(prefs.showZeroDecimals ?? true);
-
-            // Load transaction count
-            db.getTransactions(activeBook.id).then(txs => {
-                setTransactionCount(txs.length);
-            });
-        }
-    }, [activeBook]);
-
-    if (!activeBook) return <div className="p-8 text-center">No book selected</div>;
-
-    // Calculate field summary
-    const totalFields = fields.length;
-    const requiredFields = fields.filter(f => f.required).length;
-    const visibleFields = fields.filter(f => f.visible).length;
-    const hiddenFields = totalFields - visibleFields;
-
-    // Get number fields for primary amount selector
-    const numberFields = fields.filter(f => f.type === 'number');
-
-    const handleFieldChange = (index: number, updates: Partial<FieldConfig>) => {
-        const newFields = [...fields];
-        newFields[index] = { ...newFields[index], ...updates };
-        setFields(newFields);
-        setIsDirty(true);
+    const toggleSection = (section: 'fields' | 'preferences') => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
     };
 
-    const handleAddField = () => {
-        const newField: FieldConfig = {
-            key: `custom_${Date.now()}`,
-            label: 'New Field',
-            type: 'text',
-            required: false,
-            visible: true,
-            order: fields.length + 1
-        };
-        setFields([...fields, newField]);
-        setFieldsExpanded(true); // Auto-expand when adding field
-        setIsDirty(true);
-    };
-
-    const handleDeleteField = (index: number) => {
-        const newFields = fields.filter((_, i) => i !== index);
-        setFields(newFields);
-        setIsDirty(true);
-    };
-
-    const handleMoveField = (index: number, direction: 'up' | 'down') => {
-        if (
-            (direction === 'up' && index === 0) ||
-            (direction === 'down' && index === fields.length - 1)
-        ) return;
-
-        const newFields = [...fields];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
-        // Swap order values
-        const tempOrder = newFields[index].order;
-        newFields[index].order = newFields[targetIndex].order;
-        newFields[targetIndex].order = tempOrder;
-
-        // Swap positions in array
-        [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
-
-        setFields(newFields);
-        setIsDirty(true);
-    };
-
-    const handlePopulateOptions = async (index: number) => {
-        const field = fields[index];
-        if (field.type !== 'dropdown') return;
-
+    // Handlers for Basic Info
+    const handleUpdateBook = async (updates: Partial<Book>) => {
+        if (!activeBook) return;
         try {
-            const transactions = await db.getTransactions(activeBookId!);
-            const uniqueValues = new Set<string>();
-            transactions.forEach((tx: any) => {
-                if (tx.custom_data && tx.custom_data[field.key]) {
-                    const value = String(tx.custom_data[field.key]).trim();
-                    if (value) uniqueValues.add(value);
-                }
-            });
-
-            const options = Array.from(uniqueValues).sort((a, b) =>
-                a.localeCompare(b, undefined, { sensitivity: 'base' })
-            );
-
-            if (options.length > 0) {
-                handleFieldChange(index, { options });
-            } else {
-                alert('No existing values found for this field in transactions.');
-            }
-        } catch (error) {
-            console.error('Failed to populate options:', error);
-            alert('Failed to analyze transaction data');
-        }
-    };
-
-    const handleSave = async () => {
-        setIsSaving(true);
-        try {
-            // Re-normalize orders
-            const normalizedFields = fields.map((f, i) => ({ ...f, order: i + 1 }));
-
-            const updatedBook = {
-                ...activeBook,
-                name: bookName,
-                currency,
-                primary_amount_field: primaryAmountField || undefined,
-                field_config: normalizedFields,
-                preferences: {
-                    dateFormat,
-                    defaultTransactionTime: defaultTime,
-                    defaultType,
-                    defaultCategory: defaultCategory || undefined,
-                    decimalPlaces,
-                    showZeroDecimals
-                }
-            };
-
+            const updatedBook = { ...activeBook, ...updates };
+            const { db } = await import('../../lib/db');
             await db.updateBook(updatedBook);
             updateBook(updatedBook);
-
-            setFields(normalizedFields);
-            setIsDirty(false);
         } catch (error) {
-            console.error('Failed to save settings:', error);
-            alert('Failed to save settings');
-        } finally {
-            setIsSaving(false);
+            console.error('Failed to update book:', error);
         }
     };
 
-    const handleExportBook = async () => {
+    // Handler for Field Configuration
+    const handleFieldsChange = async (newFields: FieldConfig[]) => {
+        if (!activeBook) return;
+
+        // Optimistic update
+        const updatedBook = { ...activeBook, field_config: newFields };
+        updateBook(updatedBook);
+
         try {
-            const transactions = await db.getTransactions(activeBook.id);
-            const exportData = {
-                book: activeBook,
-                transactions: transactions,
-                exported_at: new Date().toISOString(),
-                version: '1.0'
-            };
-
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${activeBook.name.replace(/\s+/g, '_')}_backup.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const { db } = await import('../../lib/db');
+            await db.updateBook(updatedBook);
         } catch (error) {
-            console.error('Failed to export book:', error);
-            alert('Failed to export book data');
-        }
-    };
-
-    const handleExportTransactions = async () => {
-        try {
-            const transactions = await db.getTransactions(activeBook.id);
-            if (transactions.length === 0) {
-                alert('No transactions to export');
-                return;
-            }
-
-            const headers = ['Date', 'Type', 'Amount', 'Description', 'Category', 'Party'];
-            activeBook.field_config.forEach(f => {
-                if (!['date', 'amount', 'description', 'category_id', 'type', 'party'].includes(f.key)) {
-                    headers.push(f.label);
-                }
-            });
-
-            const csvContent = [
-                headers.join(','),
-                ...transactions.map(tx => {
-                    const row = [
-                        tx.date,
-                        tx.type,
-                        tx.amount,
-                        `"${tx.description.replace(/"/g, '""')}"`,
-                        tx.category_id,
-                        tx.party_id || ''
-                    ];
-
-                    activeBook.field_config.forEach(f => {
-                        if (!['date', 'amount', 'description', 'category_id', 'type', 'party'].includes(f.key)) {
-                            const val = tx.custom_data?.[f.key] || '';
-                            row.push(`"${String(val).replace(/"/g, '""')}"`);
-                        }
-                    });
-
-                    return row.join(',');
-                })
-            ].join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${activeBook.name.replace(/\s+/g, '_')}_transactions.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Failed to export transactions:', error);
-            alert('Failed to export transactions');
+            console.error('Failed to update fields:', error);
+            // Revert on error (optional, but good practice)
+            updateBook(activeBook);
         }
     };
 
@@ -288,441 +82,280 @@ export function BookSettings() {
         if (deleteConfirmation !== activeBook.name) return;
 
         try {
-            await db.deleteBook(activeBook.id);
-            deleteBook(activeBook.id);
-
-            const remainingBooks = books.filter(b => b.id !== activeBook.id);
-            if (remainingBooks.length > 0) {
-                setActiveBook(remainingBooks[0].id);
-                navigate('/');
-            } else {
-                setActiveBook(null as any);
-                navigate('/');
-            }
+            await deleteBook(activeBook.id);
+            setActiveBook(''); // Clear active book
+            navigate('/'); // Redirect to home/dashboard
         } catch (error) {
             console.error('Failed to delete book:', error);
-            alert('Failed to delete book');
+            alert('Failed to delete book. Please try again.');
         }
     };
 
-    // Detect if any value changed
-    useEffect(() => {
-        if (!activeBook) return;
+    const handleExportBook = () => {
+        const dataStr = JSON.stringify(activeBook, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${activeBook.name.replace(/\s+/g, '_')}_backup.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
-        const hasChanges =
-            bookName !== activeBook.name ||
-            currency !== activeBook.currency ||
-            primaryAmountField !== (activeBook.primary_amount_field || '') ||
-            dateFormat !== (activeBook.preferences?.dateFormat || 'YYYY-MM-DD') ||
-            defaultTime !== (activeBook.preferences?.defaultTransactionTime || 'current') ||
-            defaultType !== (activeBook.preferences?.defaultType || 'expense') ||
-            defaultCategory !== (activeBook.preferences?.defaultCategory || '') ||
-            decimalPlaces !== (activeBook.preferences?.decimalPlaces ?? 2) ||
-            showZeroDecimals !== (activeBook.preferences?.showZeroDecimals ?? true);
+    const handleExportTransactions = async () => {
+        try {
+            const { db } = await import('../../lib/db');
+            const transactions = await db.getTransactions(activeBook.id);
 
-        if (hasChanges !== isDirty) {
-            setIsDirty(hasChanges);
+            if (!transactions || transactions.length === 0) {
+                alert('No transactions to export.');
+                return;
+            }
+
+            // Convert to CSV
+            const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', ...activeBook.field_config.filter(f => !['date', 'description', 'amount', 'type', 'category_id'].includes(f.key)).map(f => f.label)];
+            const csvContent = [
+                headers.join(','),
+                ...transactions.map(tx => {
+                    const row = [
+                        tx.date,
+                        `"${tx.description.replace(/"/g, '""')}"`,
+                        tx.amount,
+                        tx.type,
+                        tx.category_id || '',
+                        ...activeBook.field_config.filter(f => !['date', 'description', 'amount', 'type', 'category_id'].includes(f.key)).map(f => {
+                            const val = tx.custom_data?.[f.key] || '';
+                            return `"${String(val).replace(/"/g, '""')}"`;
+                        })
+                    ];
+                    return row.join(',');
+                })
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${activeBook.name.replace(/\s+/g, '_')}_transactions.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Failed to export transactions.');
         }
-    }, [bookName, currency, primaryAmountField, dateFormat, defaultTime, defaultType, defaultCategory, decimalPlaces, showZeroDecimals, activeBook]);
+    };
 
     return (
-        <div className="max-w-4xl mx-auto pb-10 space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6 pb-20">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Book Settings</h1>
-                    <p className="text-gray-500">Configure "{bookName}"</p>
+                    <h2 className="text-2xl font-bold text-gray-900">Book Settings</h2>
+                    <p className="text-gray-500">Manage configuration for {activeBook.name}</p>
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={!isDirty || isSaving}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-                >
-                    <SaveIcon size={18} />
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowApplyTemplateModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        <FileText size={18} />
+                        Apply Template
+                    </button>
+                    <button
+                        onClick={() => setShowSaveTemplateModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        <SaveIcon size={18} />
+                        Save as Template
+                    </button>
+                </div>
             </div>
 
             {/* Basic Information */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                        <BookOpen size={20} className="text-primary-600" />
+                        <SettingsIcon size={18} />
                         Basic Information
                     </h3>
                 </div>
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Book Name */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Book Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Book Name</label>
                         <input
                             type="text"
-                            value={bookName}
-                            onChange={(e) => {
-                                setBookName(e.target.value);
-                                setIsDirty(true);
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                            placeholder="My Book"
+                            value={activeBook.name}
+                            onChange={(e) => handleUpdateBook({ name: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                         />
                     </div>
-
-                    {/* Currency */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency Symbol</label>
                         <select
-                            value={currency}
-                            onChange={(e) => {
-                                setCurrency(e.target.value);
-                                setIsDirty(true);
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+                            value={activeBook.currency}
+                            onChange={(e) => handleUpdateBook({ currency: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
                         >
-                            {CURRENCIES.map(curr => (
-                                <option key={curr.code} value={curr.code}>
-                                    {curr.symbol} {curr.code} - {curr.name}
-                                </option>
+                            {CURRENCIES.map(c => (
+                                <option key={c.code} value={c.symbol}>{c.symbol} - {c.name} ({c.code})</option>
                             ))}
                         </select>
                     </div>
-
-                    {/* Created Date (read-only) */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-2">Created On</label>
-                        <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Primary Amount Field</label>
+                        <select
+                            value={activeBook.primary_amount_field || 'amount'}
+                            onChange={(e) => handleUpdateBook({ primary_amount_field: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
+                        >
+                            {activeBook.field_config.filter(f => f.type === 'number').map(f => (
+                                <option key={f.key} value={f.key}>{f.label}</option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">Used for dashboard totals and summaries.</p>
+                    </div>
+                    <div className="pt-6 flex gap-4 text-sm text-gray-500">
+                        <div>
+                            <span className="block font-medium text-gray-700">Created</span>
                             {new Date(activeBook.created_at).toLocaleDateString()}
                         </div>
-                    </div>
-
-                    {/* Transaction Count (read-only) */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-2">Total Transactions</label>
-                        <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                            {transactionCount} {transactionCount === 1 ? 'entry' : 'entries'}
+                        <div>
+                            <span className="block font-medium text-gray-700">Transactions</span>
+                            -
                         </div>
-                    </div>
-
-                    {/* Primary Amount Field */}
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Primary Amount Field
-                            <span className="text-xs text-gray-500 ml-2">(Used for calculations and reports)</span>
-                        </label>
-                        <select
-                            value={primaryAmountField}
-                            onChange={(e) => {
-                                setPrimaryAmountField(e.target.value);
-                                setIsDirty(true);
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
-                        >
-                            <option value="">Default (Amount field)</option>
-                            {numberFields.map(field => (
-                                <option key={field.key} value={field.key}>
-                                    {field.label}
-                                </option>
-                            ))}
-                        </select>
                     </div>
                 </div>
             </div>
 
-            {/* Field Configuration - Collapsible */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Field Configuration */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <button
-                    onClick={() => setFieldsExpanded(!fieldsExpanded)}
-                    className="w-full p-6 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                    onClick={() => toggleSection('fields')}
+                    className="w-full p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition-colors"
                 >
-                    <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">
-                            Field Configuration <span className="text-gray-500">({totalFields} {totalFields === 1 ? 'field' : 'fields'})</span>
-                        </h3>
-                        <div className="flex items-center gap-2 text-xs">
-                            <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full font-medium">{requiredFields} required</span>
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">{visibleFields} visible</span>
-                            {hiddenFields > 0 && (
-                                <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full font-medium">{hiddenFields} hidden</span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddField();
-                            }}
-                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
-                        >
-                            <Plus size={16} />
-                            Add Field
-                        </button>
-                        {fieldsExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <Layout size={18} />
+                        Field Configuration
+                    </h3>
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-600">
+                            {activeBook.field_config.length} Fields
+                        </span>
+                        {expandedSections.fields ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </div>
                 </button>
 
-                {fieldsExpanded && (
-                    <div className="divide-y divide-gray-100">
-                        {fields.map((field, index) => (
-                            <div key={field.key} className="p-4 flex items-start gap-4 hover:bg-gray-50 transition-colors group">
-                                <div className="flex flex-col gap-1 mt-2 text-gray-400">
-                                    <button
-                                        onClick={() => handleMoveField(index, 'up')}
-                                        disabled={index === 0}
-                                        className="hover:text-gray-600 disabled:opacity-30"
-                                    >
-                                        <ArrowUp size={14} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleMoveField(index, 'down')}
-                                        disabled={index === fields.length - 1}
-                                        className="hover:text-gray-600 disabled:opacity-30"
-                                    >
-                                        <ArrowDown size={14} />
-                                    </button>
-                                </div>
+                {expandedSections.fields && (
+                    <div className="p-6">
+                        <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-start gap-2">
+                            <Info size={16} className="mt-0.5 shrink-0" />
+                            <p>
+                                Customize the form fields for your transactions.
+                                <strong> Core fields (Amount, Date, Description)</strong> cannot be deleted but can be renamed.
+                            </p>
+                        </div>
 
-                                <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4">
-                                    {/* Label */}
-                                    <div className="md:col-span-3">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Label</label>
-                                        <input
-                                            type="text"
-                                            value={field.label}
-                                            onChange={(e) => handleFieldChange(index, { label: e.target.value })}
-                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 outline-none"
-                                        />
-                                    </div>
-
-                                    {/* Type */}
-                                    <div className="md:col-span-2">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                                        <select
-                                            value={field.type}
-                                            onChange={(e) => handleFieldChange(index, { type: e.target.value as FieldType })}
-                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 outline-none bg-white"
-                                        >
-                                            <option value="text">Text</option>
-                                            <option value="number">Number</option>
-                                            <option value="date">Date</option>
-                                            <option value="dropdown">Dropdown</option>
-                                            <option value="checkbox">Checkbox</option>
-                                        </select>
-                                        {field.type === 'text' && (
-                                            <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={field.multiline || false}
-                                                    onChange={(e) => handleFieldChange(index, { multiline: e.target.checked })}
-                                                    className="rounded text-primary-600 focus:ring-primary-500"
-                                                />
-                                                <span className="text-xs text-gray-500">Multiline</span>
-                                            </label>
-                                        )}
-                                    </div>
-
-                                    {/* Options */}
-                                    <div className="md:col-span-4">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Options (comma separated)
-                                            {field.type === 'dropdown' && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handlePopulateOptions(index)}
-                                                    className="ml-2 text-xs text-primary-600 hover:text-primary-700 font-medium underline"
-                                                    title="Auto-populate from existing data"
-                                                >
-                                                    Auto-fill
-                                                </button>
-                                            )}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={field.options?.join(', ') || ''}
-                                            onChange={(e) => handleFieldChange(index, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                                            disabled={field.type !== 'dropdown'}
-                                            placeholder={field.type === 'dropdown' ? "Option 1, Option 2" : "N/A"}
-                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
-                                        />
-                                    </div>
-
-                                    {/* Toggles */}
-                                    <div className="md:col-span-2 flex flex-col justify-center gap-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={field.required}
-                                                onChange={(e) => handleFieldChange(index, { required: e.target.checked })}
-                                                className="rounded text-primary-600 focus:ring-primary-500"
-                                            />
-                                            <span className="text-sm text-gray-700">Required</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={field.visible}
-                                                onChange={(e) => handleFieldChange(index, { visible: e.target.checked })}
-                                                className="rounded text-primary-600 focus:ring-primary-500"
-                                            />
-                                            <span className="text-sm text-gray-700">Visible</span>
-                                        </label>
-                                    </div>
-
-                                    {/* Delete */}
-                                    <div className="md:col-span-1 flex items-center justify-end">
-                                        <button
-                                            onClick={() => handleDeleteField(index)}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                            title="Delete Field"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {fields.length === 0 && (
-                            <div className="p-8 text-center text-gray-500">
-                                No fields configured. Click "Add Field" to start.
-                            </div>
-                        )}
+                        <FieldEditor
+                            fields={activeBook.field_config}
+                            onChange={handleFieldsChange}
+                            readOnlyCoreFields={true}
+                        />
                     </div>
                 )}
             </div>
 
-            {/* Additional Preferences - Collapsible */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Additional Preferences */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <button
-                    onClick={() => setPreferencesExpanded(!preferencesExpanded)}
-                    className="w-full p-6 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                    onClick={() => toggleSection('preferences')}
+                    className="w-full p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition-colors"
                 >
                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                        <SettingsIcon size={20} className="text-primary-600" />
+                        <Sliders size={18} />
                         Additional Preferences
                     </h3>
-                    {preferencesExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                    {expandedSections.preferences ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
 
-                {preferencesExpanded && (
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Date & Time Preferences */}
-                        <div className="md:col-span-2">
-                            <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                                <Calendar size={18} className="text-primary-600" />
-                                Date & Time Preferences
-                            </h4>
+                {expandedSections.preferences && (
+                    <div className="p-6 space-y-6">
+                        {/* Date & Time */}
+                        <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100">Date & Time</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+                                    <label className="block text-sm text-gray-700 mb-1">Date Format</label>
                                     <select
-                                        value={dateFormat}
-                                        onChange={(e) => {
-                                            setDateFormat(e.target.value as any);
-                                            setIsDirty(true);
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
+                                        value={activeBook.preferences?.dateFormat || 'YYYY-MM-DD'}
+                                        onChange={(e) => handleUpdateBook({ preferences: { ...activeBook.preferences, dateFormat: e.target.value as any } })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                     >
-                                        <option value="YYYY-MM-DD">YYYY-MM-DD (2025-11-22)</option>
-                                        <option value="DD/MM/YYYY">DD/MM/YYYY (22/11/2025)</option>
-                                        <option value="MM/DD/YYYY">MM/DD/YYYY (11/22/2025)</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Default Transaction Time</label>
-                                    <select
-                                        value={defaultTime}
-                                        onChange={(e) => {
-                                            setDefaultTime(e.target.value);
-                                            setIsDirty(true);
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
-                                    >
-                                        <option value="current">Current Time</option>
-                                        <option value="startOfDay">Start of Day (00:00)</option>
-                                        <option value="09:00">Morning (09:00)</option>
-                                        <option value="12:00">Noon (12:00)</option>
-                                        <option value="18:00">Evening (18:00)</option>
+                                        <option value="YYYY-MM-DD">YYYY-MM-DD (2023-12-31)</option>
+                                        <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2023)</option>
+                                        <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2023)</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
                         {/* Transaction Defaults */}
-                        <div className="md:col-span-2 border-t pt-4">
-                            <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                                <DollarSign size={18} className="text-primary-600" />
-                                Transaction Defaults
-                            </h4>
+                        <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100">Transaction Defaults</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Default Type</label>
+                                    <label className="block text-sm text-gray-700 mb-1">Default Type</label>
                                     <select
-                                        value={defaultType}
-                                        onChange={(e) => {
-                                            setDefaultType(e.target.value as any);
-                                            setIsDirty(true);
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
+                                        value={activeBook.preferences?.defaultType || 'expense'}
+                                        onChange={(e) => handleUpdateBook({ preferences: { ...activeBook.preferences, defaultType: e.target.value as 'income' | 'expense' } })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                     >
                                         <option value="expense">Expense</option>
                                         <option value="income">Income</option>
-                                        <option value="transfer">Transfer</option>
                                     </select>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Default Category</label>
-                                    <input
-                                        type="text"
-                                        value={defaultCategory}
-                                        onChange={(e) => {
-                                            setDefaultCategory(e.target.value);
-                                            setIsDirty(true);
-                                        }}
-                                        placeholder="Leave empty for none"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                    />
+                                    <label className="block text-sm text-gray-700 mb-1">Default Category</label>
+                                    <select
+                                        value={activeBook.preferences?.defaultCategory || ''}
+                                        onChange={(e) => handleUpdateBook({ preferences: { ...activeBook.preferences, defaultCategory: e.target.value } })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    >
+                                        <option value="">None</option>
+                                        {activeBook.field_config.find(f => f.key === 'category_id')?.options?.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Display Preferences */}
-                        <div className="md:col-span-2 border-t pt-4">
-                            <h4 className="font-medium text-gray-900 mb-4">Display Preferences</h4>
+                        {/* Display */}
+                        <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100">Display</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Decimal Places for Amounts</label>
+                                    <label className="block text-sm text-gray-700 mb-1">Decimal Places</label>
                                     <select
-                                        value={decimalPlaces}
-                                        onChange={(e) => {
-                                            setDecimalPlaces(Number(e.target.value));
-                                            setIsDirty(true);
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
+                                        value={activeBook.preferences?.decimalPlaces ?? 2}
+                                        onChange={(e) => handleUpdateBook({ preferences: { ...activeBook.preferences, decimalPlaces: parseInt(e.target.value) } })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                     >
-                                        <option value={0}>0 (₹100)</option>
-                                        <option value={1}>1 (₹100.0)</option>
-                                        <option value={2}>2 (₹100.00)</option>
-                                        <option value={3}>3 (₹100.000)</option>
+                                        <option value="0">0 (100)</option>
+                                        <option value="2">2 (100.00)</option>
+                                        <option value="3">3 (100.000)</option>
                                     </select>
                                 </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Show Decimal Zeros</label>
-                                    <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <div className="flex items-center pt-6">
+                                    <label className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
-                                            checked={showZeroDecimals}
-                                            onChange={(e) => {
-                                                setShowZeroDecimals(e.target.checked);
-                                                setIsDirty(true);
-                                            }}
+                                            checked={activeBook.preferences?.showZeroDecimals ?? true}
+                                            onChange={(e) => handleUpdateBook({ preferences: { ...activeBook.preferences, showZeroDecimals: e.target.checked } })}
                                             className="rounded text-primary-600 focus:ring-primary-500"
                                         />
-                                        <span className="text-sm text-gray-700">
-                                            {showZeroDecimals ? '₹100.00' : '₹100'}
-                                        </span>
+                                        <span className="text-sm text-gray-700">Show trailing zeros (e.g. .00)</span>
                                     </label>
                                 </div>
                             </div>
@@ -838,6 +471,31 @@ export function BookSettings() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Save as Template Modal */}
+            {showSaveTemplateModal && (
+                <SaveAsTemplateModal
+                    book={activeBook}
+                    onClose={() => setShowSaveTemplateModal(false)}
+                    onSuccess={() => {
+                        setShowSaveTemplateModal(false);
+                        alert('Template saved successfully!');
+                    }}
+                />
+            )}
+
+            {/* Apply Template Modal */}
+            {showApplyTemplateModal && (
+                <ApplyTemplateModal
+                    book={activeBook}
+                    onClose={() => setShowApplyTemplateModal(false)}
+                    onSuccess={() => {
+                        setShowApplyTemplateModal(false);
+                        alert('Template applied successfully!');
+                        window.location.reload();
+                    }}
+                />
             )}
 
             {/* Import CSV Modal */}
