@@ -10,18 +10,18 @@ export function TransactionHistory() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const loadLogs = async () => {
+            if (!activeBookId) return;
+            const fetchedLogs = await db.getAuditLogs(activeBookId);
+            fetchedLogs.sort((a: AuditLog, b: AuditLog) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            setLogs(fetchedLogs);
+            setLoading(false);
+        };
+
         if (activeBookId) {
             loadLogs();
         }
     }, [activeBookId]);
-
-    const loadLogs = async () => {
-        if (!activeBookId) return;
-        const fetchedLogs = await db.getAuditLogs(activeBookId);
-        fetchedLogs.sort((a: AuditLog, b: AuditLog) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setLogs(fetchedLogs);
-        setLoading(false);
-    };
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading history...</div>;
 

@@ -100,7 +100,7 @@ export const parseFlexibleDate = (dateStr: string): Date | null => {
     const cleanStr = dateStr.trim();
 
     // Try standard ISO first
-    let date = new Date(cleanStr);
+    const date = new Date(cleanStr);
     if (!isNaN(date.getTime())) return date;
 
     // Try DD-MMM-YY (e.g., 8-May-25)

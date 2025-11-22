@@ -21,18 +21,18 @@ export function CreateTransaction() {
     // The configuration now includes all required fields (amount, date, etc.)
     const fields: FieldConfig[] = [...activeBook.field_config].sort((a, b) => a.order - b.order);
 
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: Record<string, string | number | boolean | undefined>) => {
         if (!currentUser) return;
 
         const transaction: Transaction = {
             id: generateId(),
             book_id: activeBook.id,
-            type: data.type,
-            amount: data.amount,
-            date: data.date,
-            description: data.description,
-            category_id: data.category || 'uncategorized', // simplified
-            party_id: data.party,
+            type: data.type as 'income' | 'expense' | 'transfer',
+            amount: Number(data.amount),
+            date: String(data.date),
+            description: String(data.description),
+            category_id: String(data.category || 'uncategorized'), // simplified
+            party_id: data.party as string | undefined,
             payment_mode: 'cash', // default for now
             tags: [],
             attachments: [],

@@ -61,7 +61,7 @@ export interface Transaction {
     payment_mode?: string;
     tags?: string[];
     attachments?: string[];
-    custom_data?: Record<string, any>;
+    custom_data?: Record<string, string | number | boolean | null | undefined>;
     created_by?: string;
     created_at: string;
 }
@@ -89,8 +89,8 @@ export interface AuditLog {
     action: 'create' | 'update' | 'delete';
     changes: {
         field: string;
-        old_value: any;
-        new_value: any;
+        old_value: unknown;
+        new_value: unknown;
     }[];
     performed_by: string;
     timestamp: string;

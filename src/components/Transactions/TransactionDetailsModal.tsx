@@ -16,7 +16,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
             return transaction.custom_data[key];
         }
         // Fallback to checking top-level properties if key matches (e.g. 'payment_mode')
-        return (transaction as any)[key];
+        return (transaction as unknown as Record<string, unknown>)[key];
     };
 
     return (

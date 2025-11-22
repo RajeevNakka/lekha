@@ -32,25 +32,25 @@ export function EditTransaction() {
 
     const fields: FieldConfig[] = [...activeBook.field_config].sort((a, b) => a.order - b.order);
 
-    const handleSubmit = async (data: any) => {
-        if (!currentUser) return;
+    const handleSubmit = async (data: Record<string, string | number | boolean | undefined>) => {
+        if (!currentUser || !transaction) return;
 
         console.log('Form data received:', data); // Debug log
         console.log('Amount in form data:', data.amount, 'Type:', typeof data.amount); // Debug amount specifically
 
         // Handle Date & Time
         // data.date from datetime-local is "YYYY-MM-DDTHH:mm"
-        const dateObj = new Date(data.date);
+        const dateObj = new Date(String(data.date));
         const createdAtStr = dateObj.toISOString();
 
         const updatedTransaction: Transaction = {
             ...transaction,
-            type: data.type,
+            type: data.type as 'income' | 'expense' | 'transfer',
             amount: Number(data.amount), // Ensure number
-            date: data.date, // Keep full datetime string
-            description: data.description,
-            category_id: data.category_id || 'uncategorized',
-            party_id: data.party,
+            date: String(data.date), // Keep full datetime string
+            description: String(data.description),
+            category_id: String(data.category_id || 'uncategorized'),
+            party_id: data.party as string | undefined,
             custom_data: { ...transaction.custom_data },
             created_at: createdAtStr // Update timestamp
         };
