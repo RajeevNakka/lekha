@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Book, User, FieldTemplate } from '../types';
 
 interface AppState {
@@ -7,9 +8,13 @@ interface AppState {
     books: Book[];
     templates: FieldTemplate[];
     sidebarOpen: boolean;
+    syncStatus: 'idle' | 'saving' | 'saved' | 'error';
+    autoSyncEnabled: boolean;
 
     // Actions
-    setCurrentUser: (user: User) => void;
+    setSyncStatus: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
+    setAutoSyncEnabled: (enabled: boolean) => void;
+    setCurrentUser: (user: User | null) => void;
     setActiveBook: (bookId: string) => void;
     addBook: (book: Book) => void;
     updateBook: (book: Book) => void;
@@ -26,14 +31,6 @@ interface AppState {
     fetchBooks: () => Promise<void>;
     fetchTemplates: () => Promise<void>;
 }
-
-// Mock Data
-const MOCK_USER: User = {
-    id: 'u1',
-    name: 'Demo User',
-    email: 'demo@example.com',
-    avatar_url: 'https://ui-avatars.com/api/?name=Demo+User'
-};
 
 const DEFAULT_BOOK: Book = {
     id: 'b1',
@@ -52,76 +49,91 @@ const DEFAULT_BOOK: Book = {
     ]
 };
 
-export const useStore = create<AppState>((set) => ({
-    currentUser: MOCK_USER,
-    activeBookId: 'b1',
-    books: [DEFAULT_BOOK],
-    templates: [],
-    sidebarOpen: true,
+export const useStore = create<AppState>()(
+    persist(
+        (set) => ({
+            currentUser: null,
+            activeBookId: 'b1',
+            books: [DEFAULT_BOOK],
+            templates: [],
+            sidebarOpen: true,
+            syncStatus: 'idle',
+            autoSyncEnabled: true,
 
-    setCurrentUser: (user) => set({ currentUser: user }),
-    setActiveBook: (bookId) => set({ activeBookId: bookId }),
+            setSyncStatus: (status) => set({ syncStatus: status }),
+            setAutoSyncEnabled: (enabled) => set({ autoSyncEnabled: enabled }),
+            setCurrentUser: (user) => set({ currentUser: user }),
+            setActiveBook: (bookId) => set({ activeBookId: bookId }),
 
-    addBook: (book) => set((state) => ({ books: [...state.books, book] })),
+            addBook: (book) => set((state) => ({ books: [...state.books, book] })),
 
-    updateBook: (updatedBook) => set((state) => ({
-        books: state.books.map((b) => b.id === updatedBook.id ? updatedBook : b)
-    })),
+            updateBook: (updatedBook) => set((state) => ({
+                books: state.books.map((b) => b.id === updatedBook.id ? updatedBook : b)
+            })),
 
-    deleteBook: (bookId) => set((state) => ({
-        books: state.books.filter((b) => b.id !== bookId)
-    })),
+            deleteBook: (bookId) => set((state) => ({
+                books: state.books.filter((b) => b.id !== bookId)
+            })),
 
-    addTemplate: (template) => set((state) => ({ templates: [...state.templates, template] })),
+            addTemplate: (template) => set((state) => ({ templates: [...state.templates, template] })),
 
-    updateTemplate: (updatedTemplate) => set((state) => ({
-        templates: state.templates.map((t) => t.id === updatedTemplate.id ? updatedTemplate : t)
-    })),
+            updateTemplate: (updatedTemplate) => set((state) => ({
+                templates: state.templates.map((t) => t.id === updatedTemplate.id ? updatedTemplate : t)
+            })),
 
-    deleteTemplate: (templateId) => set((state) => ({
-        templates: state.templates.filter((t) => t.id !== templateId)
-    })),
+            deleteTemplate: (templateId) => set((state) => ({
+                templates: state.templates.filter((t) => t.id !== templateId)
+            })),
 
-    toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+            toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
 
-    fetchBooks: async () => {
-        try {
-            const { db } = await import('./db');
-            const books = await db.getBooks();
+            fetchBooks: async () => {
+                try {
+                    const { db } = await import('./db');
+                    const books = await db.getBooks();
 
-            // Ensure default book always exists
-            const defaultBookExists = books.some(b => b.id === DEFAULT_BOOK.id);
-            let allBooks = books;
+                    const defaultBookExists = books.some(b => b.id === DEFAULT_BOOK.id);
+                    let allBooks = books;
 
-            if (!defaultBookExists) {
-                // Use put to upsert
-                await db.addBook(DEFAULT_BOOK).catch(console.error);
-                allBooks = [...books, DEFAULT_BOOK];
-            } else {
-                // Force update default book config to ensure no duplicates/outdated fields
-                const existingDefault = books.find(b => b.id === DEFAULT_BOOK.id);
-                if (existingDefault) {
-                    const updatedDefault = { ...existingDefault, field_config: DEFAULT_BOOK.field_config };
-                    await db.updateBook(updatedDefault).catch(console.error);
+                    if (!defaultBookExists) {
+                        await db.addBook(DEFAULT_BOOK).catch(console.error);
+                        allBooks = [...books, DEFAULT_BOOK];
+                    } else {
+                        const existingDefault = books.find(b => b.id === DEFAULT_BOOK.id);
+                        if (existingDefault) {
+                            // Only update if field_config has changed
+                            if (JSON.stringify(existingDefault.field_config) !== JSON.stringify(DEFAULT_BOOK.field_config)) {
+                                const updatedDefault = { ...existingDefault, field_config: DEFAULT_BOOK.field_config };
+                                await db.updateBook(updatedDefault).catch(console.error);
+                                allBooks = allBooks.map(b => b.id === DEFAULT_BOOK.id ? updatedDefault : b);
+                            }
+                        }
+                    }
 
-                    // Update the book in the local list as well
-                    allBooks = allBooks.map(b => b.id === DEFAULT_BOOK.id ? updatedDefault : b);
+                    set({ books: allBooks });
+                } catch (error) {
+                    console.error('Failed to fetch books:', error);
+                }
+            },
+
+            fetchTemplates: async () => {
+                try {
+                    const { db } = await import('./db');
+                    const templates = await db.getTemplates();
+                    set({ templates });
+                } catch (error) {
+                    console.error('Failed to fetch templates:', error);
                 }
             }
-
-            set({ books: allBooks });
-        } catch (error) {
-            console.error('Failed to fetch books:', error);
+        }),
+        {
+            name: 'lekha-storage',
+            partialize: (state) => ({
+                currentUser: state.currentUser,
+                activeBookId: state.activeBookId,
+                sidebarOpen: state.sidebarOpen,
+                autoSyncEnabled: state.autoSyncEnabled
+            }),
         }
-    },
-
-    fetchTemplates: async () => {
-        try {
-            const { db } = await import('./db');
-            const templates = await db.getTemplates();
-            set({ templates });
-        } catch (error) {
-            console.error('Failed to fetch templates:', error);
-        }
-    }
-}));
+    )
+);

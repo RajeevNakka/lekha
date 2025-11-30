@@ -8,22 +8,26 @@ import { TransactionHistory } from './components/Transactions/TransactionHistory
 import { BookSettings } from './components/Books/BookSettings';
 import { Reports } from './components/Reports/Reports';
 import { GlobalSettings } from './components/Settings/GlobalSettings';
+import { AutoSync } from './components/AutoSync';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="transactions" element={<TransactionList />} />
-        <Route path="transactions/new" element={<CreateTransaction />} />
-        <Route path="transactions/:transactionId/edit" element={<EditTransaction />} />
-        <Route path="history" element={<TransactionHistory />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="books/:bookId/settings" element={<BookSettings />} />
-        <Route path="settings" element={<GlobalSettings />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <>
+      <AutoSync />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="transactions" element={<TransactionList />} />
+          <Route path="transactions/new" element={<CreateTransaction />} />
+          <Route path="transactions/:transactionId/edit" element={<EditTransaction />} />
+          <Route path="history" element={<TransactionHistory />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="books/:bookId/settings" element={<BookSettings />} />
+          <Route path="settings" element={<GlobalSettings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

@@ -66,7 +66,19 @@ cd lekha
 npm install
 ```
 
-3. Start the development server:
+3. Configure Environment Variables:
+   - Copy the example environment file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Open `.env` and add your Google Cloud credentials:
+     ```properties
+     VITE_GOOGLE_CLIENT_ID=your_client_id_here
+     VITE_GOOGLE_API_KEY=your_api_key_here
+     ```
+   - Note: Google Drive integration requires these credentials. You can obtain them from the [Google Cloud Console](https://console.cloud.google.com/).
+
+4. Start the development server:
 ```bash
 # For Main Development (Port 3000)
 npm run dev
@@ -80,21 +92,34 @@ npm run qa
    - QA: `http://localhost:4000`
 
 ### Build for Production
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist` directory.
-
-## 📖 Usage
-
-### Creating Your First Book
-
-1. Click "Create Book" from the sidebar or dashboard
-2. Enter a book name and select currency
-3. Configure custom fields for your transactions
-4. Start adding transactions!
+ 
+ ```bash
+ npm run build
+ ```
+ 
+ The built files will be in the `dist` directory.
+ 
+ ### Deployment to GitHub Pages
+ 
+ This repository includes a GitHub Actions workflow for automatic deployment to GitHub Pages.
+ 
+ 1. Go to your repository **Settings** > **Secrets and variables** > **Actions**.
+ 2. Click **New repository secret**.
+ 3. Add the following secrets (using the same values from your local `.env`):
+    - Name: `VITE_GOOGLE_CLIENT_ID`
+      Value: `your_client_id`
+    - Name: `VITE_GOOGLE_API_KEY`
+      Value: `your_api_key`
+ 4. Push your changes to the `main` branch. The action will automatically build and deploy your app.
+ 
+ ## 📖 Usage
+ 
+ ### Creating Your First Book
+ 
+ 1. Click "Create Book" from the sidebar or dashboard
+ 2. Enter a book name and select currency
+ 3. Configure custom fields for your transactions
+ 4. Start adding transactions!
 
 ### Importing from CSV
 
