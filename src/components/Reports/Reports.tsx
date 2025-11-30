@@ -167,7 +167,11 @@ function CategoryReport({ transactions, currency }: { transactions: Transaction[
     const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
 
     const byCategory = expenses.reduce((acc, tx) => {
-        const cat = tx.category_id || 'Uncategorized';
+        // Check category_id first, then custom_data.category, then custom_data.category_id
+        const cat = tx.category_id ||
+            (tx.custom_data?.category as string) ||
+            (tx.custom_data?.category_id as string) ||
+            'Uncategorized';
         acc[cat] = (acc[cat] || 0) + tx.amount;
         return acc;
     }, {} as Record<string, number>);

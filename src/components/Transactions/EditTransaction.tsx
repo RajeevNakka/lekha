@@ -35,27 +35,31 @@ export function EditTransaction() {
     const handleSubmit = async (data: Record<string, string | number | boolean | undefined>) => {
         if (!currentUser || !transaction) return;
 
-        console.log('Form data received:', data); // Debug log
-        console.log('Amount in form data:', data.amount, 'Type:', typeof data.amount); // Debug amount specifically
+        const amount = Number(data.amount);
+        const typeInput = data.type as string | undefined;
 
-        // Handle Date & Time
-        // data.date from datetime-local is "YYYY-MM-DDTHH:mm"
+        // Normalize type to lowercase for database storage
+        const type = typeInput?.toLowerCase() as 'income' | 'expense' | 'transfer' | undefined;
+
+        // Infer type from amount if not provided
+        const finalType: 'income' | 'expense' | 'transfer' = type || (amount >= 0 ? 'income' : 'expense');
+
         const dateObj = new Date(String(data.date));
         const createdAtStr = dateObj.toISOString();
 
         const updatedTransaction: Transaction = {
             ...transaction,
-            type: data.type as 'income' | 'expense' | 'transfer',
-            amount: Number(data.amount), // Ensure number
-            date: String(data.date), // Keep full datetime string
+            type: finalType,
+            amount: Math.abs(amount),
+            date: String(data.date),
             description: String(data.description),
             category_id: String(data.category_id || 'uncategorized'),
             party_id: data.party as string | undefined,
             custom_data: { ...transaction.custom_data },
-            created_at: createdAtStr // Update timestamp
+            created_at: createdAtStr
         };
 
-        // Update custom fields - exclude all core fields from custom_data
+        // Update custom fields
         const coreFields = ['type', 'amount', 'date', 'description', 'category_id', 'party'];
         Object.keys(data).forEach(key => {
             if (!coreFields.includes(key)) {
@@ -65,30 +69,19 @@ export function EditTransaction() {
             }
         });
 
-        console.log('Updated transaction:', updatedTransaction); // Debug log
-        console.log('Updated transaction amount:', updatedTransaction.amount, 'Type:', typeof updatedTransaction.amount); // Debug amount field specifically
-
-        const result = await db.updateTransaction(updatedTransaction);
-        console.log('DB Update result:', result); // Debug DB update result
+        await db.updateTransaction(updatedTransaction);
         navigate('/transactions');
     };
 
-    // Prepare default values from transaction object
-    console.log('EditTransaction - transaction.date:', transaction.date);
-    console.log('EditTransaction - converted date:', toDatetimeLocalFormat(transaction.date));
-
     const defaultValues = {
-        ...transaction.custom_data, // Spread custom_data FIRST
-        // Then override with core fields to prevent custom_data from overwriting them
+        ...transaction.custom_data,
         type: transaction.type,
         amount: transaction.amount,
-        date: toDatetimeLocalFormat(transaction.date), // Convert to datetime-local format
+        date: toDatetimeLocalFormat(transaction.date),
         description: transaction.description,
         category_id: transaction.category_id,
         party: transaction.party_id,
     };
-
-    console.log('EditTransaction - defaultValues:', defaultValues);
 
     return (
         <div className="max-w-2xl mx-auto">

@@ -44,7 +44,7 @@ const DEFAULT_BOOK: Book = {
         { key: 'date', label: 'Date', type: 'date', required: true, visible: true, order: 2 },
         { key: 'description', label: 'Description', type: 'text', required: true, visible: true, order: 3 },
         { key: 'category_id', label: 'Category', type: 'dropdown', required: true, visible: true, order: 4, options: ['Food', 'Transport', 'Salary', 'Utilities'] },
-        { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['income', 'expense', 'transfer'] },
+        { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['Income', 'Expense', 'Transfer'] },
         { key: 'party', label: 'Party', type: 'text', visible: true, required: false, order: 6 }
     ]
 };

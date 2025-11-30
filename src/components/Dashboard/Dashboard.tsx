@@ -1,7 +1,7 @@
 import { useStore } from '../../lib/store';
 import { Link } from 'react-router-dom';
 import { Plus, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Settings } from 'lucide-react';
-import { formatCurrency, formatDate } from '../../lib/utils';
+import { formatCurrency, formatDate, inferTransactionType } from '../../lib/utils';
 import { useEffect, useState } from 'react';
 import { db } from '../../lib/db';
 import type { Transaction } from '../../types';
@@ -36,13 +36,14 @@ export function Dashboard() {
             // Calculate stats
             const newStats = txs.reduce((acc, tx) => {
                 const amount = getDisplayAmount(tx);
+                const type = inferTransactionType(amount, tx.type);
 
-                if (tx.type === 'income') {
-                    acc.income += amount;
-                    acc.balance += amount;
-                } else if (tx.type === 'expense') {
-                    acc.expense += amount;
-                    acc.balance -= amount;
+                if (type === 'income') {
+                    acc.income += Math.abs(amount);
+                    acc.balance += Math.abs(amount);
+                } else if (type === 'expense') {
+                    acc.expense += Math.abs(amount);
+                    acc.balance -= Math.abs(amount);
                 }
                 return acc;
             }, { balance: 0, income: 0, expense: 0 });
@@ -172,14 +173,15 @@ export function Dashboard() {
                         {recentTransactions.map((tx) => {
                             const tag = getDisplayTag(tx);
                             const amount = getDisplayAmount(tx);
+                            const type = inferTransactionType(amount, tx.type);
                             return (
                                 <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className={`p-2 rounded-full ${tx.type === 'income' ? 'bg-green-100 text-green-600' :
-                                            tx.type === 'expense' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
+                                        <div className={`p-2 rounded-full ${type === 'income' ? 'bg-green-100 text-green-600' :
+                                            type === 'expense' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
                                             }`}>
-                                            {tx.type === 'income' ? <ArrowDownLeft size={20} /> :
-                                                tx.type === 'expense' ? <ArrowUpRight size={20} /> : <ArrowUpRight size={20} />}
+                                            {type === 'income' ? <ArrowDownLeft size={20} /> :
+                                                type === 'expense' ? <ArrowUpRight size={20} /> : <ArrowUpRight size={20} />}
                                         </div>
                                         <div>
                                             <p className="font-medium text-gray-900">{tx.description}</p>
@@ -193,11 +195,11 @@ export function Dashboard() {
                                             </div>
                                         </div>
                                     </div>
-                                    <span className={`font-medium ${tx.type === 'income' ? 'text-green-600' :
-                                        tx.type === 'expense' ? 'text-red-600' : 'text-gray-900'
+                                    <span className={`font-medium ${type === 'income' ? 'text-green-600' :
+                                        type === 'expense' ? 'text-red-600' : 'text-gray-900'
                                         }`}>
-                                        {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}
-                                        {formatCurrency(amount, activeBook.currency)}
+                                        {type === 'income' ? '+' : type === 'expense' ? '-' : ''}
+                                        {formatCurrency(Math.abs(amount), activeBook.currency)}
                                     </span>
                                 </div>
                             );

@@ -13,30 +13,34 @@ export function CreateTransaction() {
 
     if (!activeBook) return <div>No book selected</div>;
 
-    // Merge default fields with custom fields if needed, or just use the config
-    // In our design, we put everything in field_config for simplicity in rendering
-    // But we need to map them back to the Transaction object structure
-
     // Use the book's field configuration directly
-    // The configuration now includes all required fields (amount, date, etc.)
     const fields: FieldConfig[] = [...activeBook.field_config].sort((a, b) => a.order - b.order);
 
     const handleSubmit = async (data: Record<string, string | number | boolean | undefined>) => {
         if (!currentUser) return;
 
+        const amount = Number(data.amount);
+        const typeInput = data.type as string | undefined;
+
+        // Normalize type to lowercase for database storage
+        const type = typeInput?.toLowerCase() as 'income' | 'expense' | 'transfer' | undefined;
+
+        // Infer type from amount if not provided
+        const finalType: 'income' | 'expense' | 'transfer' = type || (amount >= 0 ? 'income' : 'expense');
+
         const transaction: Transaction = {
             id: generateId(),
             book_id: activeBook.id,
-            type: data.type as 'income' | 'expense' | 'transfer',
-            amount: Number(data.amount),
+            type: finalType,
+            amount: Math.abs(amount), // Store as absolute value
             date: String(data.date),
             description: String(data.description),
-            category_id: String(data.category || 'uncategorized'), // simplified
+            category_id: String(data.category || 'uncategorized'),
             party_id: data.party as string | undefined,
-            payment_mode: 'cash', // default for now
+            payment_mode: 'cash',
             tags: [],
             attachments: [],
-            custom_data: {}, // store extra fields here
+            custom_data: {},
             created_by: currentUser.id,
             created_at: new Date().toISOString()
         };
@@ -67,8 +71,8 @@ export function CreateTransaction() {
                     onSubmit={handleSubmit}
                     onCancel={() => navigate(-1)}
                     defaultValues={{
-                        date: new Date().toISOString().slice(0, 16), // Current datetime for input
-                        type: 'expense'
+                        date: new Date().toISOString().slice(0, 16),
+                        type: 'Expense'
                     }}
                 />
             </div>

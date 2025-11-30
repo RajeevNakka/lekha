@@ -37,7 +37,7 @@ export function CreateTemplateModal({ onClose, onSuccess }: CreateTemplateModalP
                 { key: 'date', label: 'Date', type: 'date', required: true, visible: true, order: 2 },
                 { key: 'description', label: 'Description', type: 'text', required: true, visible: true, order: 3 },
                 { key: 'category_id', label: 'Category', type: 'dropdown', required: true, visible: true, order: 4, options: ['General'] },
-                { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['income', 'expense'] }
+                { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['Income', 'Expense'] }
             ]);
         }
     }, [baseTemplateId, templates]);

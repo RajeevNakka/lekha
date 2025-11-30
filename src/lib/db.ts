@@ -62,7 +62,7 @@ export const initDB = () => {
                                     { key: 'date', label: 'Date', type: 'date', required: true, visible: true, order: 2 },
                                     { key: 'description', label: 'Description', type: 'text', required: true, visible: true, order: 3 },
                                     { key: 'category_id', label: 'Category', type: 'dropdown', required: true, visible: true, order: 4, options: ['Food', 'Transport', 'Utilities', 'Salary', 'Entertainment', 'Health', 'Shopping'] },
-                                    { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['income', 'expense', 'transfer'] },
+                                    { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 5, options: ['Income', 'Expense', 'Transfer'] },
                                     { key: 'payment_mode', label: 'Payment Mode', type: 'dropdown', required: false, visible: true, order: 6, options: ['Cash', 'Credit Card', 'Debit Card', 'UPI', 'Bank Transfer'] }
                                 ],
                                 preferences: {
@@ -83,7 +83,7 @@ export const initDB = () => {
                                     { key: 'client', label: 'Client / Vendor', type: 'text', required: true, visible: true, order: 4 },
                                     { key: 'invoice_no', label: 'Invoice #', type: 'text', required: false, visible: true, order: 5 },
                                     { key: 'category_id', label: 'Category', type: 'dropdown', required: true, visible: true, order: 6, options: ['Sales', 'Services', 'Office Supplies', 'Rent', 'Salaries', 'Marketing', 'Software'] },
-                                    { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 7, options: ['income', 'expense'] },
+                                    { key: 'type', label: 'Type', type: 'dropdown', required: true, visible: true, order: 7, options: ['Income', 'Expense'] },
                                     { key: 'tax_deductible', label: 'Tax Deductible', type: 'checkbox', required: false, visible: true, order: 8 }
                                 ],
                                 preferences: {

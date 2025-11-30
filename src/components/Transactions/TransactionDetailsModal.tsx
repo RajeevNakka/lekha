@@ -1,6 +1,6 @@
 import { X, Edit2, Calendar, Tag, FileText, DollarSign } from 'lucide-react';
 import type { Transaction, Book } from '../../types';
-import { formatCurrency, formatDate } from '../../lib/utils';
+import { formatCurrency, formatDate, formatTransactionType } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 
 interface TransactionDetailsModalProps {
@@ -64,7 +64,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
                                 transaction.type === 'expense' ? 'bg-red-100 text-red-700 border-red-200' :
                                     'bg-blue-100 text-blue-700 border-blue-200'
                                 }`}>
-                                {transaction.type}
+                                {formatTransactionType(transaction.type)}
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 import { useStore } from '../../lib/store';
-import { formatCurrency, formatDateTime } from '../../lib/utils';
+import { formatCurrency, formatDateTime, formatTransactionType, inferTransactionType } from '../../lib/utils';
 import { ArrowUpRight, Search, Filter, Edit2, Trash2, History, Eye, Settings, Check } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../../lib/db';
@@ -57,6 +57,16 @@ export function TransactionList() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    // Initialize visible columns if empty
+    useEffect(() => {
+        if (activeBook && visibleColumns.length === 0 && activeBook.field_config) {
+            const defaultCols = activeBook.field_config
+                .filter(f => f.visible)
+                .map(f => f.key);
+            setVisibleColumns(defaultCols);
+        }
+    }, [activeBook, visibleColumns.length]);
 
     const loadColumnPreferences = () => {
         if (!activeBook) return;
@@ -180,15 +190,17 @@ export function TransactionList() {
         .filter(t => {
             // Text Search
             const matchesSearch =
-                t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (t.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                 t.amount.toString().includes(searchQuery);
 
             // Date Range
             const matchesStartDate = !filters.startDate || new Date(t.date) >= new Date(filters.startDate);
             const matchesEndDate = !filters.endDate || new Date(t.date) <= new Date(filters.endDate + 'T23:59:59');
 
-            // Type
-            const matchesType = filters.type === 'all' || t.type === filters.type;
+            // Type - infer from amount if missing
+            const amount = getFieldValue(t, 'amount') as number || t.amount;
+            const inferredType = inferTransactionType(amount, t.type);
+            const matchesType = filters.type === 'all' || inferredType === filters.type;
 
             // Dynamic Filters
             const matchesDynamic = Object.entries(filters.dynamic).every(([key, value]) => {
@@ -246,16 +258,6 @@ export function TransactionList() {
 
     // Get dropdown fields for filters
     const filterableFields = effectiveFieldConfig.filter(f => f.type === 'dropdown');
-
-    // Initialize visible columns if empty
-    useEffect(() => {
-        if (activeBook && visibleColumns.length === 0) {
-            const defaultCols = effectiveFieldConfig
-                .filter(f => f.visible)
-                .map(f => f.key);
-            setVisibleColumns(defaultCols);
-        }
-    }, [activeBook, effectiveFieldConfig]);
 
 
     return (

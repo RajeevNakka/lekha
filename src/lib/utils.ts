@@ -201,3 +201,19 @@ export function analyzeColumnData(rows: string[][], columnIndex: number): Column
         hasEmpty
     };
 }
+
+/**
+ * Infers the transaction type from the amount when the type field is missing.
+ * Positive amounts are treated as income, negative as expense.
+ */
+export function inferTransactionType(amount: number, existingType?: 'income' | 'expense' | 'transfer'): 'income' | 'expense' | 'transfer' {
+    if (existingType) return existingType;
+    return amount >= 0 ? 'income' : 'expense';
+}
+
+/**
+ * Formats transaction type to title case for display.
+ */
+export function formatTransactionType(type: 'income' | 'expense' | 'transfer'): string {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+}
