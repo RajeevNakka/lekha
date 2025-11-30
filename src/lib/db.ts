@@ -157,7 +157,25 @@ const createLog = (
     timestamp: new Date().toISOString()
 });
 
+// Change notification system
+type ChangeListener = () => void;
+const listeners: ChangeListener[] = [];
+
+const notifyListeners = () => {
+    listeners.forEach(l => l());
+};
+
 export const db = {
+    subscribe(listener: ChangeListener) {
+        listeners.push(listener);
+        return () => {
+            const index = listeners.indexOf(listener);
+            if (index > -1) {
+                listeners.splice(index, 1);
+            }
+        };
+    },
+
     async getTransactions(bookId: string) {
         const db = await initDB();
         return db.getAllFromIndex('transactions', 'by-book', bookId);
@@ -177,7 +195,8 @@ export const db = {
             tx.objectStore('transactions').add(transaction),
             tx.objectStore('audit_logs').add(log)
         ]);
-        return tx.done;
+        await tx.done;
+        notifyListeners();
     },
 
     async updateTransaction(transaction: Transaction) {
@@ -205,7 +224,8 @@ export const db = {
             tx.objectStore('transactions').put(transaction),
             tx.objectStore('audit_logs').add(log)
         ]);
-        return tx.done;
+        await tx.done;
+        notifyListeners();
     },
 
     async deleteTransaction(id: string) {
@@ -220,27 +240,28 @@ export const db = {
             tx.objectStore('transactions').delete(id),
             tx.objectStore('audit_logs').add(log)
         ]);
-        return tx.done;
+        await tx.done;
+        notifyListeners();
     },
 
     async addBook(book: Book) {
         const db = await initDB();
-        return db.add('books', book);
+        await db.add('books', book);
+        notifyListeners();
     },
 
     async updateBook(book: Book) {
         const db = await initDB();
-        return db.put('books', book);
+        await db.put('books', book);
+        notifyListeners();
     },
 
     async deleteBook(id: string) {
         const db = await initDB();
-
         const tx = db.transaction(['books', 'transactions', 'audit_logs'], 'readwrite');
-
-        // Delete the book
         await tx.objectStore('books').delete(id);
-
+        await tx.done;
+        notifyListeners();
     },
 
     async getBooks() {
@@ -261,16 +282,67 @@ export const db = {
 
     async addTemplate(template: FieldTemplate) {
         const db = await initDB();
-        return db.add('templates', template);
+        await db.add('templates', template);
+        notifyListeners();
     },
 
     async updateTemplate(template: FieldTemplate) {
         const db = await initDB();
-        return db.put('templates', template);
+        await db.put('templates', template);
+        notifyListeners();
     },
 
     async deleteTemplate(id: string) {
         const db = await initDB();
-        return db.delete('templates', id);
+        await db.delete('templates', id);
+        notifyListeners();
+    },
+
+    // Backup & Restore
+    async exportDatabase() {
+        const db = await initDB();
+        const [transactions, books, templates, audit_logs] = await Promise.all([
+            db.getAll('transactions'),
+            db.getAll('books'),
+            db.getAll('templates'),
+            db.getAll('audit_logs')
+        ]);
+
+        return {
+            version: DB_VERSION,
+            timestamp: new Date().toISOString(),
+            data: {
+                transactions,
+                books,
+                templates,
+                audit_logs
+            }
+        };
+    },
+
+    async importDatabase(backupData: any) {
+        const db = await initDB();
+        const tx = db.transaction(['transactions', 'books', 'templates', 'audit_logs'], 'readwrite');
+
+        // Clear existing data
+        await Promise.all([
+            tx.objectStore('transactions').clear(),
+            tx.objectStore('books').clear(),
+            tx.objectStore('templates').clear(),
+            tx.objectStore('audit_logs').clear()
+        ]);
+
+        // Import new data
+        const { transactions, books, templates, audit_logs } = backupData.data;
+
+        const promises = [
+            ...transactions.map((t: any) => tx.objectStore('transactions').add(t)),
+            ...books.map((b: any) => tx.objectStore('books').add(b)),
+            ...templates.map((t: any) => tx.objectStore('templates').add(t)),
+            ...audit_logs.map((l: any) => tx.objectStore('audit_logs').add(l))
+        ];
+
+        await Promise.all(promises);
+        return tx.done;
     }
 };

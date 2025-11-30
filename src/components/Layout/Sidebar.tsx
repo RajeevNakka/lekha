@@ -7,14 +7,18 @@ import {
     Book,
     ChevronLeft,
     PlusCircle,
-    BarChart3
+    BarChart3,
+    User as UserIcon,
+    CloudOff,
+    Loader2,
+    Check
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useState } from 'react';
 import { CreateBookModal } from '../Books/CreateBookModal';
 
 export function Sidebar() {
-    const { sidebarOpen, toggleSidebar, books, activeBookId, setActiveBook } = useStore();
+    const { sidebarOpen, toggleSidebar, books, activeBookId, setActiveBook, currentUser, syncStatus } = useStore();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const activeBook = books.find(b => b.id === activeBookId);
@@ -127,16 +131,49 @@ export function Sidebar() {
             {/* User Profile */}
             <div className="p-4 border-t border-gray-100">
                 <div className={clsx("flex items-center gap-3", !sidebarOpen && "justify-center")}>
-                    <img
-                        src="https://ui-avatars.com/api/?name=Demo+User&background=0ea5e9&color=fff"
-                        alt="User"
-                        className="w-9 h-9 rounded-full bg-gray-200"
-                    />
-                    {sidebarOpen && (
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-medium text-gray-700 truncate">Demo User</p>
-                            <p className="text-xs text-gray-500 truncate">demo@example.com</p>
-                        </div>
+                    {currentUser ? (
+                        <>
+                            {currentUser.avatar_url ? (
+                                <img
+                                    src={currentUser.avatar_url}
+                                    alt={currentUser.name}
+                                    className="w-9 h-9 rounded-full bg-gray-200"
+                                />
+                            ) : (
+                                <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">
+                                    {currentUser.name.charAt(0)}
+                                </div>
+                            )}
+                            {sidebarOpen && (
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="text-sm font-medium text-gray-700 truncate">{currentUser.name}</p>
+                                    <div className="flex items-center gap-1">
+                                        <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                                        {syncStatus === 'saving' && (
+                                            <Loader2 size={12} className="text-blue-500 animate-spin" />
+                                        )}
+                                        {syncStatus === 'saved' && (
+                                            <Check size={12} className="text-green-500" />
+                                        )}
+                                        {syncStatus === 'error' && (
+                                            <CloudOff size={12} className="text-red-500" />
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                <UserIcon size={20} />
+                            </div>
+                            {sidebarOpen && (
+                                <div className="overflow-hidden">
+                                    <p className="text-sm font-medium text-gray-700 truncate">Guest User</p>
+                                    <p className="text-xs text-gray-500 truncate">Not connected</p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
