@@ -16,6 +16,27 @@ export function CreateTransaction() {
     // Use the book's field configuration directly
     const fields: FieldConfig[] = [...activeBook.field_config].sort((a, b) => a.order - b.order);
 
+    // Helper to find description field
+    const getDescriptionField = (fields: FieldConfig[]) => {
+        // 1. Exact key match 'description'
+        const descKey = fields.find(f => f.key === 'description');
+        if (descKey) return descKey;
+
+        // 2. Exact key match 'remark'
+        const remarkKey = fields.find(f => f.key === 'remark');
+        if (remarkKey) return remarkKey;
+
+        // 3. Label match 'description' (case insensitive)
+        const descLabel = fields.find(f => f.label.toLowerCase() === 'description');
+        if (descLabel) return descLabel;
+
+        // 4. Label match 'remark' (case insensitive)
+        const remarkLabel = fields.find(f => f.label.toLowerCase() === 'remark');
+        if (remarkLabel) return remarkLabel;
+
+        return null;
+    };
+
     const handleSubmit = async (data: Record<string, string | number | boolean | undefined>) => {
         if (!currentUser) return;
 
@@ -28,14 +49,17 @@ export function CreateTransaction() {
         // Infer type from amount if not provided
         const finalType: 'income' | 'expense' | 'transfer' = type || (amount >= 0 ? 'income' : 'expense');
 
+        const descField = getDescriptionField(fields);
+        const descValue = descField ? data[descField.key] : '';
+
         const transaction: Transaction = {
             id: generateId(),
             book_id: activeBook.id,
             type: finalType,
             amount: Math.abs(amount), // Store as absolute value
             date: String(data.date),
-            description: String(data.description),
-            category_id: String(data.category || 'uncategorized'),
+            description: descValue ? String(descValue) : '',
+            category_id: String(data.category_id || 'uncategorized'),
             party_id: data.party as string | undefined,
             payment_mode: 'cash',
             tags: [],
@@ -47,7 +71,7 @@ export function CreateTransaction() {
 
         // Move custom fields to custom_data
         Object.keys(data).forEach(key => {
-            if (!['type', 'amount', 'date', 'description', 'category', 'party'].includes(key)) {
+            if (!['type', 'amount', 'date', 'category_id', 'party', descField?.key].includes(key)) {
                 if (transaction.custom_data) {
                     transaction.custom_data[key] = data[key];
                 }

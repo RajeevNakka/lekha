@@ -36,10 +36,11 @@ export function TemplateManager() {
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                    title="Create Template"
                 >
                     <Plus size={18} />
-                    Create Template
+                    <span className="hidden sm:inline">Create Template</span>
                 </button>
             </div>
 

@@ -158,17 +158,19 @@ export function BookSettings() {
                 <div className="flex gap-2">
                     <button
                         onClick={() => setShowApplyTemplateModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        title="Apply Template"
                     >
                         <FileText size={18} />
-                        Apply Template
+                        <span className="hidden sm:inline">Apply Template</span>
                     </button>
                     <button
                         onClick={() => setShowSaveTemplateModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        title="Save as Template"
                     >
                         <SaveIcon size={18} />
-                        Save as Template
+                        <span className="hidden sm:inline">Save as Template</span>
                     </button>
                 </div>
             </div>

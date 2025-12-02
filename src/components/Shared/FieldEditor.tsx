@@ -73,7 +73,7 @@ export function FieldEditor({ fields, onChange, readOnlyCoreFields = true }: Fie
 
             <div className="space-y-3">
                 {fields.sort((a, b) => (a.order || 0) - (b.order || 0)).map((field, index) => (
-                    <div key={field.key} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-white hover:border-primary-200 transition-colors group">
+                    <div key={field.key} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 border border-gray-200 rounded-lg bg-white hover:border-primary-200 transition-colors group">
                         <div className="flex flex-col gap-1 mt-2 text-gray-400 cursor-grab active:cursor-grabbing">
                             <button type="button" onClick={() => handleMoveField(index, 'up')} disabled={index === 0} className="hover:text-primary-600 disabled:opacity-30">
                                 <ChevronDown size={14} className="rotate-180" />
@@ -84,7 +84,7 @@ export function FieldEditor({ fields, onChange, readOnlyCoreFields = true }: Fie
                             </button>
                         </div>
 
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4">
                             <div className="md:col-span-3">
                                 <label className="text-xs font-medium text-gray-500 mb-1 block">Label</label>
                                 <input
@@ -123,7 +123,7 @@ export function FieldEditor({ fields, onChange, readOnlyCoreFields = true }: Fie
                                     </>
                                 )}
                             </div>
-                            <div className="md:col-span-3 flex items-center gap-4 pt-6">
+                            <div className="md:col-span-3 flex items-center gap-4 pt-2 md:pt-6">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -145,7 +145,7 @@ export function FieldEditor({ fields, onChange, readOnlyCoreFields = true }: Fie
                             </div>
                         </div>
 
-                        <div className="pt-6">
+                        <div className="pt-2 md:pt-6">
                             <button
                                 type="button"
                                 onClick={() => handleDeleteField(index)}

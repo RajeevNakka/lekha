@@ -284,7 +284,7 @@ export function ImportCSVModal({ book, onClose, onSuccess }: ImportCSVModalProps
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <h3 className="text-xl font-bold text-gray-900">Import Transactions (CSV)</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                         <X size={24} />
@@ -292,7 +292,7 @@ export function ImportCSVModal({ book, onClose, onSuccess }: ImportCSVModalProps
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6">
                     {step === 'upload' && (
                         <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
                             <input
@@ -315,8 +315,8 @@ export function ImportCSVModal({ book, onClose, onSuccess }: ImportCSVModalProps
                                 <p>Select "Create New Field" to automatically add a new custom field to your book.</p>
                             </div>
 
-                            <div className="border rounded-lg overflow-hidden">
-                                <table className="w-full text-sm text-left">
+                            <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                                <table className="w-full text-sm text-left min-w-[600px]">
                                     <thead className="bg-gray-50 text-gray-700 font-medium border-b">
                                         <tr>
                                             <th className="p-3 w-1/4">CSV Header</th>
@@ -332,7 +332,7 @@ export function ImportCSVModal({ book, onClose, onSuccess }: ImportCSVModalProps
                                                     {mapping.sampleValue || <span className="italic text-gray-300">Empty</span>}
                                                 </td>
                                                 <td className="p-3">
-                                                    <div className="flex gap-2">
+                                                    <div className="flex flex-col md:flex-row gap-2">
                                                         <select
                                                             value={mapping.targetField}
                                                             onChange={(e) => handleMappingChange(index, e.target.value)}
@@ -365,7 +365,7 @@ export function ImportCSVModal({ book, onClose, onSuccess }: ImportCSVModalProps
                                                                 value={mapping.newFieldName || ''}
                                                                 onChange={(e) => handleNewFieldNameChange(index, e.target.value)}
                                                                 placeholder="Field Name"
-                                                                className="w-1/3 px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                                                className="w-full md:w-1/3 px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                                                                 autoFocus
                                                             />
                                                         )}
@@ -401,7 +401,7 @@ export function ImportCSVModal({ book, onClose, onSuccess }: ImportCSVModalProps
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                <div className="p-4 md:p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
                     {step === 'map' && (
                         <>
                             <button

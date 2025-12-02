@@ -82,4 +82,13 @@
     - [ ] Verify confirmation dialog appears.
     - [ ] Confirm delete.
     - [ ] Verify transaction is removed from list.
+- [ ] **Mobile UI Optimization**:
+    - [ ] Verify "Zoomed In" feel is resolved (reduced padding/font sizes).
+    - [ ] Verify Dashboard, Transaction List, and Settings on mobile resolution (e.g., 390x844).
+- [ ] **Transaction Description Fix**:
+    - [ ] Create a new transaction.
+    - [ ] Verify description is saved correctly (not "undefined").
+    - [ ] Verify Dashboard Recent Activity shows correct description.
+- [ ] **Base URL Fix**:
+    - [ ] Verify app loads correctly on `http://localhost:3000/` (no redirect warning).
 

@@ -267,29 +267,31 @@ function PartyReport({ transactions, currency }: { transactions: Transaction[], 
             <div className="p-6 border-b border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-900">Party Ledger</h3>
             </div>
-            <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Party Name</th>
-                        <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Total Paid (Out)</th>
-                        <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Total Received (In)</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                    {sortedParties.map(([party, stats]) => (
-                        <tr key={party} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{party}</td>
-                            <td className="px-6 py-4 text-sm text-red-600 font-bold text-right">{formatCurrency(stats.paid, currency)}</td>
-                            <td className="px-6 py-4 text-sm text-green-600 font-bold text-right">{formatCurrency(stats.received, currency)}</td>
-                        </tr>
-                    ))}
-                    {sortedParties.length === 0 && (
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[500px]">
+                    <thead className="bg-gray-50">
                         <tr>
-                            <td colSpan={3} className="px-6 py-8 text-center text-gray-500">No party data found.</td>
+                            <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Party Name</th>
+                            <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Total Paid (Out)</th>
+                            <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Total Received (In)</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {sortedParties.map(([party, stats]) => (
+                            <tr key={party} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{party}</td>
+                                <td className="px-6 py-4 text-sm text-red-600 font-bold text-right">{formatCurrency(stats.paid, currency)}</td>
+                                <td className="px-6 py-4 text-sm text-green-600 font-bold text-right">{formatCurrency(stats.received, currency)}</td>
+                            </tr>
+                        ))}
+                        {sortedParties.length === 0 && (
+                            <tr>
+                                <td colSpan={3} className="px-6 py-8 text-center text-gray-500">No party data found.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
@@ -323,12 +325,12 @@ function CustomReport({ transactions, currency, groupBy, setGroupBy, fields }: {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center gap-4">
+            <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:items-center gap-4">
                 <label className="text-sm font-medium text-gray-700">Group By Field:</label>
                 <select
                     value={groupBy}
                     onChange={(e) => setGroupBy(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none w-full sm:w-auto"
                 >
                     <option value="">Select a field...</option>
                     <option value="payment_mode">Payment Mode</option>
@@ -340,24 +342,26 @@ function CustomReport({ transactions, currency, groupBy, setGroupBy, fields }: {
 
             {groupBy && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{groupBy}</th>
-                                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Count</th>
-                                <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Total Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {groupedData.map(([key, stats]) => (
-                                <tr key={key} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{key}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 text-right">{stats.count}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-900 font-bold text-right">{formatCurrency(stats.amount, currency)}</td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[500px]">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">{groupBy}</th>
+                                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Count</th>
+                                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Total Amount</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {groupedData.map(([key, stats]) => (
+                                    <tr key={key} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{key}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600 text-right">{stats.count}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-900 font-bold text-right">{formatCurrency(stats.amount, currency)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>

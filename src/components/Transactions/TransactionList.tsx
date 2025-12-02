@@ -264,23 +264,25 @@ export function TransactionList() {
         <div className="h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">Transactions</h1>
                     <p className="text-gray-500">{activeBook.name}</p>
                 </div>
                 <div className="flex gap-3">
                     <Link
                         to="/history"
-                        className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                        title="Audit Log"
                     >
                         <History size={18} />
-                        Audit Log
+                        <span className="hidden sm:inline">Audit Log</span>
                     </Link>
                     <Link
                         to="/transactions/new"
-                        className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm"
+                        title="Add Entry"
                     >
                         <ArrowUpRight size={18} />
-                        Add Entry
+                        <span className="hidden sm:inline">Add Entry</span>
                     </Link>
                 </div>
             </div>
@@ -302,11 +304,12 @@ export function TransactionList() {
                     <div className="relative" ref={columnSelectorRef}>
                         <button
                             onClick={() => setShowColumnSelector(!showColumnSelector)}
-                            className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showColumnSelector ? 'bg-gray-100 border-gray-400 text-gray-900' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            className={`px-3 sm:px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showColumnSelector ? 'bg-gray-100 border-gray-400 text-gray-900' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                                 }`}
+                            title="Columns"
                         >
                             <Settings size={18} />
-                            Columns
+                            <span className="hidden sm:inline">Columns</span>
                         </button>
 
                         {showColumnSelector && (
@@ -358,11 +361,12 @@ export function TransactionList() {
 
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        className={`px-3 sm:px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
+                        title="Filters"
                     >
                         <Filter size={18} />
-                        Filters
+                        <span className="hidden sm:inline">Filters</span>
                     </button>
                 </div>
 
@@ -567,7 +571,9 @@ export function TransactionList() {
                                                         {tx.type}
                                                     </span>
                                                 </div>
-                                                <h3 className="font-medium text-gray-900 line-clamp-2">{tx.description}</h3>
+                                                <h3 className="font-medium text-gray-900 line-clamp-2">
+                                                    {tx.description || <span className="text-gray-400 italic font-normal">No description</span>}
+                                                </h3>
                                             </div>
                                             <span className={`font-bold whitespace-nowrap
                                                 ${tx.type === 'income' ? 'text-green-600' :

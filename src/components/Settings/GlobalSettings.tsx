@@ -327,22 +327,24 @@ export function GlobalSettings() {
                             <div className="space-y-3">
                                 {books.map(book => (
                                     <div key={book.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-primary-50 text-primary-600 rounded-lg">
+                                        <div className="flex items-center gap-4 min-w-0 flex-1 mr-2">
+                                            <div className="p-2 bg-primary-50 text-primary-600 rounded-lg shrink-0">
                                                 <BookIcon size={20} />
                                             </div>
-                                            <div>
-                                                <h4 className="font-medium text-gray-900">{book.name}</h4>
-                                                <p className="text-sm text-gray-500">{book.currency} • {new Date(book.created_at).toLocaleDateString()}</p>
+                                            <div className="min-w-0">
+                                                <h4 className="font-medium text-gray-900 truncate">{book.name}</h4>
+                                                <p className="text-sm text-gray-500 truncate">{book.currency} • {new Date(book.created_at).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {activeBookId !== book.id && (
                                                 <button
                                                     onClick={() => setActiveBook(book.id)}
-                                                    className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                                                    className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center gap-1"
+                                                    title="Switch To"
                                                 >
-                                                    Switch To
+                                                    <span className="hidden sm:inline">Switch To</span>
+                                                    <span className="sm:hidden">Switch</span>
                                                 </button>
                                             )}
                                             <button

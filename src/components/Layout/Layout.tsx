@@ -26,7 +26,7 @@ export function Layout() {
                     "flex-1 pb-16 md:pb-0",
                     !sidebarOpen && "md:ml-[-11rem]" // Adjust margin when sidebar is closed (desktop)
                 )}>
-                    <div className="flex-1 p-4 md:p-8 overflow-auto">
+                    <div className="flex-1 p-3 md:p-8 overflow-auto">
                         <div className="max-w-7xl mx-auto">
                             <Outlet />
                         </div>

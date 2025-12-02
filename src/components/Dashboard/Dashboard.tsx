@@ -86,11 +86,11 @@ export function Dashboard() {
     if (!activeBook) return <div>Select a book</div>;
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-4 md:space-y-8">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
                     <p className="text-gray-500">Overview of {activeBook.name}</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -106,56 +106,57 @@ export function Dashboard() {
                     </Link>
                     <Link
                         to="/transactions/new"
-                        className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm hover:shadow-md"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm hover:shadow-md"
+                        title="New Transaction"
                     >
                         <Plus size={20} />
-                        <span>New Transaction</span>
+                        <span className="hidden md:inline">New Transaction</span>
                     </Link>
                 </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                        <div className="p-1.5 md:p-2 bg-blue-50 text-blue-600 rounded-lg">
                             <Wallet size={24} />
                         </div>
                         <span className="text-xs font-medium text-gray-400 uppercase">Total Balance</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.balance, activeBook.currency)}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">{formatCurrency(stats.balance, activeBook.currency)}</p>
                     <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
                         <TrendingUp size={16} />
                         <span>Updated just now</span>
                     </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                        <div className="p-1.5 md:p-2 bg-green-50 text-green-600 rounded-lg">
                             <ArrowDownLeft size={24} />
                         </div>
                         <span className="text-xs font-medium text-gray-400 uppercase">Income</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.income, activeBook.currency)}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">{formatCurrency(stats.income, activeBook.currency)}</p>
                     <p className="text-sm text-gray-500 mt-1">Total Income</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2 bg-red-50 text-red-600 rounded-lg">
+                <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                        <div className="p-1.5 md:p-2 bg-red-50 text-red-600 rounded-lg">
                             <ArrowUpRight size={24} />
                         </div>
                         <span className="text-xs font-medium text-gray-400 uppercase">Expenses</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.expense, activeBook.currency)}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">{formatCurrency(stats.expense, activeBook.currency)}</p>
                     <p className="text-sm text-gray-500 mt-1">Total Expenses</p>
                 </div>
             </div>
 
             {/* Recent Activity */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div className="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
                     <h3 className="font-semibold text-gray-900">Recent Activity</h3>
                     <Link to="/transactions" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
                         View All
@@ -183,19 +184,21 @@ export function Dashboard() {
                                             {type === 'income' ? <ArrowDownLeft size={20} /> :
                                                 type === 'expense' ? <ArrowUpRight size={20} /> : <ArrowUpRight size={20} />}
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900">{tx.description}</p>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-medium text-gray-900 truncate">
+                                                {tx.description || <span className="text-gray-400 italic font-normal">No description</span>}
+                                            </p>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-xs text-gray-500">{formatDate(tx.date)}</p>
+                                                <p className="text-xs text-gray-500 whitespace-nowrap">{formatDate(tx.date)}</p>
                                                 {tag && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 truncate max-w-[100px]">
                                                         {tag}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
-                                    <span className={`font-medium ${type === 'income' ? 'text-green-600' :
+                                    <span className={`font-medium whitespace-nowrap ${type === 'income' ? 'text-green-600' :
                                         type === 'expense' ? 'text-red-600' : 'text-gray-900'
                                         }`}>
                                         {type === 'income' ? '+' : type === 'expense' ? '-' : ''}

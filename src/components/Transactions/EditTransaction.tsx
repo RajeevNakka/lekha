@@ -32,6 +32,27 @@ export function EditTransaction() {
 
     const fields: FieldConfig[] = [...activeBook.field_config].sort((a, b) => a.order - b.order);
 
+    // Helper to find description field
+    const getDescriptionField = (fields: FieldConfig[]) => {
+        // 1. Exact key match 'description'
+        const descKey = fields.find(f => f.key === 'description');
+        if (descKey) return descKey;
+
+        // 2. Exact key match 'remark'
+        const remarkKey = fields.find(f => f.key === 'remark');
+        if (remarkKey) return remarkKey;
+
+        // 3. Label match 'description' (case insensitive)
+        const descLabel = fields.find(f => f.label.toLowerCase() === 'description');
+        if (descLabel) return descLabel;
+
+        // 4. Label match 'remark' (case insensitive)
+        const remarkLabel = fields.find(f => f.label.toLowerCase() === 'remark');
+        if (remarkLabel) return remarkLabel;
+
+        return null;
+    };
+
     const handleSubmit = async (data: Record<string, string | number | boolean | undefined>) => {
         if (!currentUser || !transaction) return;
 
@@ -47,12 +68,15 @@ export function EditTransaction() {
         const dateObj = new Date(String(data.date));
         const createdAtStr = dateObj.toISOString();
 
+        const descField = getDescriptionField(fields);
+        const descValue = descField ? data[descField.key] : '';
+
         const updatedTransaction: Transaction = {
             ...transaction,
             type: finalType,
             amount: Math.abs(amount),
             date: String(data.date),
-            description: String(data.description),
+            description: descValue ? String(descValue) : '',
             category_id: String(data.category_id || 'uncategorized'),
             party_id: data.party as string | undefined,
             custom_data: { ...transaction.custom_data },
@@ -60,7 +84,7 @@ export function EditTransaction() {
         };
 
         // Update custom fields
-        const coreFields = ['type', 'amount', 'date', 'description', 'category_id', 'party'];
+        const coreFields = ['type', 'amount', 'date', 'category_id', 'party', descField?.key];
         Object.keys(data).forEach(key => {
             if (!coreFields.includes(key)) {
                 if (updatedTransaction.custom_data) {
@@ -73,12 +97,14 @@ export function EditTransaction() {
         navigate('/transactions');
     };
 
+    const descField = getDescriptionField(fields);
+
     const defaultValues = {
         ...transaction.custom_data,
         type: transaction.type,
         amount: transaction.amount,
         date: toDatetimeLocalFormat(transaction.date),
-        description: transaction.description,
+        [descField?.key || 'description']: transaction.description,
         category_id: transaction.category_id,
         party: transaction.party_id,
     };

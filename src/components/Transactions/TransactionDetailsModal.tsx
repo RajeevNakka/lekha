@@ -23,7 +23,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">Transaction Details</h2>
                         <p className="text-sm text-gray-500 mt-1">ID: {transaction.id}</p>
@@ -36,9 +36,9 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
                     </button>
                 </div>
 
-                <div className="p-6 space-y-8">
+                <div className="p-4 md:p-6 space-y-6 md:space-y-8">
                     {/* Primary Info Card */}
-                    <div className={`p-6 rounded-xl border ${transaction.type === 'income' ? 'bg-green-50 border-green-100' :
+                    <div className={`p-4 md:p-6 rounded-xl border ${transaction.type === 'income' ? 'bg-green-50 border-green-100' :
                         transaction.type === 'expense' ? 'bg-red-50 border-red-100' :
                             'bg-blue-50 border-blue-100'
                         }`}>
@@ -52,7 +52,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Amount</p>
-                                    <p className={`text-3xl font-bold ${transaction.type === 'income' ? 'text-green-700' :
+                                    <p className={`text-2xl md:text-3xl font-bold ${transaction.type === 'income' ? 'text-green-700' :
                                         transaction.type === 'expense' ? 'text-red-700' :
                                             'text-blue-700'
                                         }`}>
@@ -70,7 +70,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
                     </div>
 
                     {/* Core Details Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2 text-gray-500 mb-1">
                                 <Calendar size={16} />
@@ -110,7 +110,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
                     {(book.field_config || []).length > 0 && (
                         <div className="border-t border-gray-100 pt-6">
                             <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">Additional Details</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                 {(book.field_config || [])
                                     .filter(field => field.visible)
                                     .sort((a, b) => a.order - b.order)
@@ -140,7 +140,7 @@ export function TransactionDetailsModal({ transaction, book, onClose }: Transact
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
+                <div className="p-4 md:p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
